@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!-- IE使用当前浏览器的最高文档模式 -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<!-- 多核浏览器使用webkit内核 -->
+		<meta name="renderer" content="webkit">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="Access-Control-Allow-Origin" content="*">
+		<link rel=icon href=/favicon.ico>
+		<title>找不到页面</title>
+		<style>
+			body,
+			html {
+				font-size: 12px;
+				font-family: "微软雅黑", "Microsoft YaHei", sans-serif;
+				line-height: 1.8em;
+				border-collapse: collapse;
+				background: #35475f;
+			}
+			
+			a {
+				text-decoration: none
+			}
+			
+			* {
+				padding: 0px;
+				margin: 0px;
+				outline: none;
+				word-wrap: break-word
+			}
+			
+			div.notice_page {
+				margin: 0 auto;
+				height: 100%;
+				position: relative;
+				width: 80%;
+			}
+			
+			div.notice_page .notice_404_p {
+				height: 500px;
+				max-width: 1120px;
+				background: url('/img/404.png') center no-repeat;
+				background-size: cover;
+				margin: 0 auto;
+			}
+			.home_page {
+				text-align: center;
+				margin: 0 auto;
+				position: absolute;
+				bottom: 170px;
+				left: calc(50% - 120px);
+				color:#96a5b8;
+				font-size: 13px;
+			}
+			.home_page span{
+				margin-left: 26px;
+			}
+			    
+			.home_page a{
+				border:1px solid #96a5b8;
+				width:80px;
+				height: 20px;
+				line-height: 20px;
+				text-align: center;
+				color:#96a5b8;
+				margin-top: 30px;
+				display: inline-block;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<div class="notice_page">
+			<div class="notice_404_p"></div>
+			<div class="home_page">
+				<span>抱歉 , 您访问的页面跑外星去了</span><br />
+				<a class="notice_home" href="/">返回首页</a>
+			</div>
+		</div>
+
+	</body>
+</html>

@@ -1,0 +1,115 @@
+server:
+  port: 9090
+  tomcat:
+    protocol-header-https-value: https
+    protocol-header: X-Forwarded-Proto
+    remote-ip-header: X-FORWARDED-FOR
+# spring
+spring:
+  session:
+    store-type: none
+    redis:
+      namespace: ${spring.application.name}:session
+    timeout:
+      seconds: 1800
+  redis:
+    url: redis://10.32.15.78:6379
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://10.32.15.80:3306/sso_server?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: edpuser
+    password: oawLaWSL@1
+    druid:
+      # 验证连接是否有效。此参数必须设置为非空字符串，下面三项设置成true才能生效
+      validation-query: SELECT 1
+      # 连接是否被空闲连接回收器(如果有)进行检验. 如果检测失败, 则连接将被从池中去除
+      test-while-idle: true
+      # 是否在从池中取出连接前进行检验, 如果检验失败, 则从池中去除连接并尝试取出另一个
+      test-on-borrow: true
+      # 是否在归还到池中前进行检验
+      test-on-return: false
+      # 连接在池中最小生存的时间，单位是毫秒
+      min-evictable-idle-time-millis: 30000
+  # thymeleaf
+  thymeleaf:
+    enabled: true
+    enable-spring-el-compiler: false
+    cache: false
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    check-template: true
+    check-template-location: true
+    reactive:
+      max-chunk-size: 0
+  mail:
+    protocol: smtp
+    host: smtp.xmi01.com
+#    port: 25 
+    username: edpadmin@xmi01.com
+    password: edpadmin@haimihui123
+    properties:
+      mail:
+        smtp: 
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.xmi01.com
+          socketFactory: 
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+swagger:
+  enabled: true
+prelogin:
+  enabled: false
+  user-id: 1
+sms:
+  enabled: true
+  appid: 1400146417
+  appkey: 32681bea45f347686b295e2d4be4f373
+  sms-sign: 
+email:
+  enabled: true
+  username: ${spring.mail.username}
+  template: classpath:/config/code.html
+  default-subject: 验证码 - EDP认证中心
+sso:
+  enabled: true
+  async-supported: false
+  auto-remove-webapp-from-server: false
+  token-max-age-seconds: 60
+  ignore-urls: /login/*, /sign/in, /resource/webapp/*, /decrypt, /actuator/*,/auth/menu/*
+  ignore-resources: .js, .css, .jpg, .png, .ico, .html, .js.map, .woff, .ttf
+  server:
+    batch-preview-size: 10
+    request-key-max-limit: 30
+    request-key-max-age-seconds: 30
+    send-verify-code-interval-minutes: 1
+    send-verify-code-max-age-minutes: 5
+    send-verify-code-template: 252799
+# management
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+# eureka
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: http://datahub.eureka.node1.com:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    lease-renewal-interval-in-seconds: 1
+    lease-expiration-duration-in-seconds: 3

@@ -1,0 +1,41 @@
+# ------start-------
+spring:
+  application:
+    name: sso-server
+  main:
+    banner-mode: 'off'
+  cloud:
+    config:
+      enabled: false
+      name: ${spring.application.name}
+      profile: dev
+      label: master
+      uri:
+      - http://10.32.15.71:8800
+# i18n
+i18n:
+  config:
+    enabled: true
+# logging
+logging:
+  path: /edpglobal/logs/${spring.application.name}
+  level:
+    root: info
+# ------end-------
+# mybatis
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: org.young.sso.server.model
+
+# encrypt
+encrypt:
+  key-store:
+    alias: edpadmin
+    password: edpadmin@gouuse123
+    secret: edpadmin@gouuse123
+    location: classpath:/config/edpadmin.jks
+  rsa:
+    pem-pub-location: classpath:/config/edpadmin_pub.pem
+    max-bytes-length: 2048
+    max-encrypt-block-length: 245
+    max-decrypt-block-length: 256
