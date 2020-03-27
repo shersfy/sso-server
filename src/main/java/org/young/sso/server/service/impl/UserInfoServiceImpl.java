@@ -137,7 +137,7 @@ implements UserInfoService {
 
 	@Override
 	public String generateST(String remoteAddr, String tgc) {
-		return "ST-"+RandomStringUtils.random(6);
+		return "ST-"+RandomStringUtils.randomAlphanumeric(Const.RANDOM_LEN);
 	}
 
 	@Override

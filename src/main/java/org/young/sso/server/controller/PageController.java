@@ -2,6 +2,7 @@ package org.young.sso.server.controller;
 
 import java.net.URLDecoder;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.young.sso.sdk.autoconfig.ConstSso;
 import org.young.sso.sdk.autoconfig.SsoProperties;
+import org.young.sso.server.beans.Const;
 import org.young.sso.server.service.UserInfoService;
 
 @Controller
@@ -62,7 +64,7 @@ public class PageController extends BaseController {
 		
 		try {
 			webapp = URLDecoder.decode(webapp, "UTF-8");
-			String rk = userInfoService.generateRequestKey(getRemoteAddr());
+			String rk = "RK-"+RandomStringUtils.randomAlphanumeric(Const.RANDOM_LEN);
 			String st = userInfoService.generateST(getRemoteAddr(), getTGC());
 			StringBuilder redirect = new StringBuilder(0);
 			redirect.append(webapp);
