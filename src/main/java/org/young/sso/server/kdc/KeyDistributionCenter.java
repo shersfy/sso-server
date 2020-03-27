@@ -93,7 +93,7 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 				+RandomStringUtils.randomNumeric(Const.RANDOM_LEN);
 		
 		String key = String.format("%s_%s_%s", Const.LOGIN_CACHE_KEY_PREFIX, remoteAddr, timestamp);
-		String ency = SsoAESUtil.encryptHexStr(key, SsoAESUtil.AES_SEED);
+		String ency = SsoAESUtil.encryptHexStr(key, timestamp);
 		
 		redis.opsForValue().set(key, ency, properties.getRequestKeyMaxAgeSeconds(), TimeUnit.SECONDS);
 		return ency;
