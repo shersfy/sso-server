@@ -19,13 +19,13 @@ import org.young.sso.sdk.autoconfig.ConstSso;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.listener.SessionSharedListener;
 import org.young.sso.sdk.resource.LoginWebapp;
+import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.sdk.utils.HttpUtil;
 import org.young.sso.sdk.utils.HttpUtil.HttpResult;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.beans.TicketGrantingCookie;
 import org.young.sso.server.config.RedisHttpSessionProperties;
-import org.young.sso.server.utils.AesUtil;
 
 import com.alibaba.fastjson.JSON;
 
@@ -151,7 +151,7 @@ public class SessionSharedService implements SessionSharedListener{
 		this.invalidateSession(sessionId);
 		TicketGrantingCookie info = null;
 		try {
-			String text = AesUtil.decryptHexStr(tgc.toString(), AesUtil.AES_SEED);
+			String text = SsoAESUtil.decryptHexStr(tgc.toString(), SsoAESUtil.AES_SEED);
 			info = JSON.parseObject(text, TicketGrantingCookie.class);
 		} catch (Exception e) {
 			LOGGER.error("", e);

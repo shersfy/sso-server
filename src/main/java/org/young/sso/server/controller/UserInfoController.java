@@ -17,6 +17,7 @@ import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
+import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.beans.IdInfo;
@@ -33,7 +34,6 @@ import org.young.sso.server.logs.LogManager;
 import org.young.sso.server.logs.LoginLog;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
-import org.young.sso.server.utils.AesUtil;
 
 import com.alibaba.fastjson.JSON;
 
@@ -62,7 +62,7 @@ public class UserInfoController extends BaseController {
 			String text = encryptor.decrypt(id);
 			IdInfo idInfo = JSON.parseObject(text, IdInfo.class);
 
-			String key = AesUtil.decryptHexStr(idInfo.getK(), AesUtil.AES_SEED);
+			String key = SsoAESUtil.decryptHexStr(idInfo.getK(), SsoAESUtil.AES_SEED);
 			res = userInfoService.checkRequestKey(key, getRemoteAddr());
 			if (res.getCode()!=SUCESS) {
 				return res;
@@ -91,7 +91,7 @@ public class UserInfoController extends BaseController {
 			tgc.setLoginId(log.getUuid());
 
 			// 存储TGC
-			String tgcStr = AesUtil.encryptHexStr(tgc.toString(), AesUtil.AES_SEED);
+			String tgcStr = SsoAESUtil.encryptHexStr(tgc.toString(), SsoAESUtil.AES_SEED);
 			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgcStr);
 			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, log.getLoginLang());
 
@@ -223,7 +223,7 @@ public class UserInfoController extends BaseController {
 				return res;
 			}
 
-			String key = AesUtil.decryptHexStr(form.getK(), AesUtil.AES_SEED);
+			String key = SsoAESUtil.decryptHexStr(form.getK(), SsoAESUtil.AES_SEED);
 			res = userInfoService.checkRequestKey(key, getRemoteAddr());
 			if (res.getCode()!=SUCESS) {
 				return res;

@@ -2,9 +2,9 @@ package org.young.sso.server.config.sms;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.young.sso.sdk.exception.SsoException;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
-import org.young.sso.server.exception.SsoException;
 
 import com.github.qcloudsms.SmsSingleSender;
 import com.github.qcloudsms.SmsSingleSenderResult;

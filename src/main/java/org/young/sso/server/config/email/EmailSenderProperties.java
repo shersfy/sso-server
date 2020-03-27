@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource;
 @ConfigurationProperties(EmailSenderProperties.PREFIX)
 public class EmailSenderProperties {
 	
-	public static final String PREFIX ="email";
+	public static final String PREFIX ="sso.server.email";
 	
 	/**
 	 * 是否开启(默认true关闭)

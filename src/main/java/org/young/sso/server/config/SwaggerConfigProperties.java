@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(SwaggerConfigProperties.PREFIX)
 public class SwaggerConfigProperties {
 	
-	public static final String PREFIX = "swagger";
+	public static final String PREFIX = "sso.server.swagger";
 	
 	/**
 	 * 是否开启(默认false关闭)

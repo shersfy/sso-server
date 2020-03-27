@@ -4,8 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 @RefreshScope
-@ConfigurationProperties("sso.server")
+@ConfigurationProperties(AppProperties.PREFIX)
 public class AppProperties {
+	
+	public static final String PREFIX = "sso.server.app";
 	
 	private long requestKeyMaxLimit = 10;
 	

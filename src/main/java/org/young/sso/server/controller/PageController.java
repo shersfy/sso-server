@@ -9,8 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.young.sso.sdk.autoconfig.ConstSso;
+import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.server.kdc.KeyDistributionCenter;
-import org.young.sso.server.utils.AesUtil;
 
 @Controller
 public class PageController extends BaseController {
@@ -64,7 +64,7 @@ public class PageController extends BaseController {
 			
 			String rk = kdc.generateRequestKey();
 			String st = kdc.generateST(rk, getTGC(), apphost);
-			rk = "rk-"+AesUtil.encryptHexStr(rk, apphost);
+			rk = "rk-"+SsoAESUtil.encryptHexStr(rk, apphost);
 			
 			StringBuilder redirect = new StringBuilder(0);
 			redirect.append(webapp);

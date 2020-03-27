@@ -17,12 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
+import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.beans.TicketGrantingCookie;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
-import org.young.sso.server.utils.AesUtil;
 
 public class PreLoginFilter implements Filter {
 	
@@ -67,7 +67,7 @@ public class PreLoginFilter implements Filter {
 			tgc.setLoginId(String.valueOf(System.currentTimeMillis()));
 			
 			// 存储token
-			tgcStr = AesUtil.encryptHexStr(tgc.toString(), AesUtil.AES_SEED);
+			tgcStr = SsoAESUtil.encryptHexStr(tgc.toString(), SsoAESUtil.AES_SEED);
 			SsoUtil.saveTGC(req, res, ssoProperties, tgcStr);
 			SsoUtil.saveLanguage(req, res, ssoProperties, Locale.CHINA.toString());
 			req.getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser);

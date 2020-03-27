@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
+import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.server.beans.BaseEntity;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.mapper.BaseMapper;
 import org.young.sso.server.service.impl.BaseServiceImpl;
-import org.young.sso.server.utils.AesUtil;
 import org.young.sso.server.utils.DateUtil;
 import org.young.sso.server.utils.MD5Util;
 
@@ -74,7 +74,7 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 				+RandomStringUtils.randomNumeric(Const.RANDOM_LEN);
 		
 		String key = String.format("%s_%s_%s", Const.LOGIN_CACHE_KEY_PREFIX, remoteAddr, timestamp);
-		String ency = AesUtil.encryptHexStr(key, AesUtil.AES_SEED);
+		String ency = SsoAESUtil.encryptHexStr(key, SsoAESUtil.AES_SEED);
 		
 		redis.opsForValue().set(key, ency, properties.getRequestKeyMaxAgeSeconds(), TimeUnit.SECONDS);
 		return ency;

@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(PreLoginProperties.PREFIX)
 public class PreLoginProperties {
 	
-	public static final String PREFIX ="prelogin";
+	public static final String PREFIX ="sso.server.prelogin";
 	
 	/**
 	 * 测试用户ID

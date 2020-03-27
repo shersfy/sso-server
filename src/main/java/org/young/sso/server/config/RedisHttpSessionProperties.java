@@ -11,8 +11,10 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 @RefreshScope
-@ConfigurationProperties(prefix = "spring.session")
+@ConfigurationProperties(RedisHttpSessionProperties.PREFIX)
 public class RedisHttpSessionProperties {
+	
+	public static final String PREFIX = "spring.session";
 
 	@Value("${spring.session.timeout.seconds}")
 	private int timeoutSeconds = 300;
