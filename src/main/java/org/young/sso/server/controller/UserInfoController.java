@@ -1,9 +1,12 @@
 package org.young.sso.server.controller;
 
+import javax.validation.Valid;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,8 +27,10 @@ import org.young.sso.server.config.RsaKeyPair.RsaJsEncryptor;
 import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.controller.form.PasswordEditForm;
 import org.young.sso.server.controller.form.PasswordForgetForm;
+import org.young.sso.server.controller.form.UserInfoEditForm;
 import org.young.sso.server.logs.LogManager;
 import org.young.sso.server.logs.LoginLog;
+import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
 import org.young.sso.server.utils.AesUtil;
 
@@ -46,6 +51,77 @@ public class UserInfoController extends BaseController {
 	
 	@Autowired
 	private LogManager logManager;
+	
+	@PostMapping("/sign/in")
+	public SsoResult signIn(@RequestParam(required=true) String id) {
+		SsoResult res = null;
+		RsaJsEncryptor encryptor = keyPair.getRsaJsEncryptor();
+		try {
+			// 解密
+			String text = encryptor.decrypt(id);
+			IdInfo idInfo = JSON.parseObject(text, IdInfo.class);
+
+			String key = AesUtil.decryptHexStr(idInfo.getK(), AesUtil.AES_SEED);
+			res = userInfoService.checkRequestKey(key, getRemoteAddr());
+			if (res.getCode()!=SUCESS) {
+				return res;
+			}
+
+			// 登录
+			res = userInfoService.signIn(idInfo);
+			if (res.getCode()!=SUCESS) {
+				if (res.getCode()==ResultCode.TMP_LOGIN) {
+					res.setCode(SUCESS);
+					getRequest().getSession().setAttribute("tmpUser", res.getModel());
+				}
+				return res;
+			}
+
+			LoginUser loginUser = (LoginUser) res.getModel();
+			String uuid = String.valueOf(System.nanoTime());
+			LoginLog log = new LoginLog(uuid, loginUser.getUserId(), loginUser.getUsername(), 
+					getRemoteAddr(), getRemoteHost(), idInfo.getLang(), 
+					getBasePath()+"/sign/in", System.currentTimeMillis());
+			// TGC
+			TicketGrantingCookie tgc = new TicketGrantingCookie(loginUser.getUserId(), 
+					loginUser.getUsername(), getRequest().getSession().getId());
+			tgc.setLoginTimestamp(System.currentTimeMillis());
+			tgc.setRandom(RandomStringUtils.random(6));
+			tgc.setLoginId(log.getUuid());
+
+			// 存储TGC
+			String tgcStr = AesUtil.encryptHexStr(tgc.toString(), AesUtil.AES_SEED);
+			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgcStr);
+			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, log.getLoginLang());
+
+			// 存储登录用户信息
+			saveLoginUser(loginUser);
+
+			// 记录登录日志
+
+			logManager.sendLog(log);
+			LOGGER.info("sign in successful. session={}, t={}", 
+					getRequest().getSession().getId(), SsoUtil.hiddenToken(tgcStr));
+
+		} catch (Exception e) {
+			LOGGER.error("id="+id, e);
+			res = res==null?new SsoResult():res;
+			res.setCode(I18nCodes.getCode(MSGE000008));
+			res.setModel(new I18nModel(MSGE000008));
+		}
+		return res;
+	}
+
+	/**
+	 * 退出过滤器已处理
+	 * @return
+	 */
+	@PostMapping("/sign/out")
+	public SsoResult signOut() {
+		SsoResult res = new SsoResult();
+		SsoUtil.invalidateSession(getRequest().getSession());
+		return res;
+	}
 
 	@PostMapping("/login/k")
 	public SsoResult loginKey() {
@@ -64,6 +140,38 @@ public class UserInfoController extends BaseController {
 		String key = userInfoService.generateRequestKey(getRemoteAddr());
 		res.setModel(new RequestKey(key, keyPair.getRsaJsEncryptor().getPemPubKey()));
 		return res;
+	}
+	
+	/**
+	 * 校验token
+	 * @return
+	 */
+	@PostMapping("/login/validate")
+	public SsoResult loginValidate(@RequestParam(required=true) String data) {
+
+		RsaJsEncryptor encryptor = keyPair.getRsaJsEncryptor();
+		try {
+			if (ssoProperties.isEnabledRsa()) {
+				data = encryptor.decrypt(data);
+			}
+		} catch (Exception e) {
+			LOGGER.error("", e);
+			SsoResult res = new SsoResult();
+			res.setCode(I18nCodes.getCode(MSGE000012));
+			res.setModel(new I18nModel(MSGE000012));
+			return res;
+		}
+
+		try {
+			ServiceTicket st = JSON.parseObject(data, ServiceTicket.class);
+			return userInfoService.validate(st);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+			SsoResult res = new SsoResult();
+			res.setCode(I18nCodes.getCode(MSGC000007));
+			res.setModel(new I18nModel(MSGC000007, "data", data));
+			return res;
+		}
 	}
 
 	@PostMapping("/login/send")
@@ -169,119 +277,51 @@ public class UserInfoController extends BaseController {
 		return res;
 	}
 
-	@PostMapping("/sign/in")
-	public SsoResult signIn(@RequestParam(required=true) String id) {
-		SsoResult res = null;
-		RsaJsEncryptor encryptor = keyPair.getRsaJsEncryptor();
-		try {
-			// 解密
-			String text = encryptor.decrypt(id);
-			IdInfo idInfo = JSON.parseObject(text, IdInfo.class);
 
-			String key = AesUtil.decryptHexStr(idInfo.getK(), AesUtil.AES_SEED);
-			res = userInfoService.checkRequestKey(key, getRemoteAddr());
-			if (res.getCode()!=SUCESS) {
-				return res;
-			}
-
-			// 登录
-			res = userInfoService.signIn(idInfo);
-			if (res.getCode()!=SUCESS) {
-				if (res.getCode()==ResultCode.TMP_LOGIN) {
-					res.setCode(SUCESS);
-					getRequest().getSession().setAttribute("tmpUser", res.getModel());
-				}
-				return res;
-			}
-
-			LoginUser loginUser = (LoginUser) res.getModel();
-			String uuid = String.valueOf(System.nanoTime());
-			LoginLog log = new LoginLog(uuid, loginUser.getUserId(), loginUser.getUsername(), 
-					getRemoteAddr(), getRemoteHost(), idInfo.getLang(), 
-					getBasePath()+"/sign/in", System.currentTimeMillis());
-			// TGC
-			TicketGrantingCookie tgc = new TicketGrantingCookie(loginUser.getUserId(), 
-					loginUser.getUsername(), getRequest().getSession().getId());
-			tgc.setLoginTimestamp(System.currentTimeMillis());
-			tgc.setRandom(RandomStringUtils.random(6));
-			tgc.setLoginId(log.getUuid());
-
-			// 存储TGC
-			String tgcStr = AesUtil.encryptHexStr(tgc.toString(), AesUtil.AES_SEED);
-			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgcStr);
-			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, log.getLoginLang());
-
-			// 存储登录用户信息
-			saveLoginUser(loginUser);
-
-			// 记录登录日志
-
-			logManager.sendLog(log);
-			LOGGER.info("sign in successful. session={}, t={}", 
-					getRequest().getSession().getId(), SsoUtil.hiddenToken(tgcStr));
-
-		} catch (Exception e) {
-			LOGGER.error("id="+id, e);
-			res = res==null?new SsoResult():res;
-			res.setCode(I18nCodes.getCode(MSGE000008));
-			res.setModel(new I18nModel(MSGE000008));
+	@GetMapping("/user/current")
+	public SsoResult getCurrentLoginUser() {
+		return new SsoResult(getLoginUser());
+	}
+	
+	@PostMapping("/user/current/edit")
+	public SsoResult editCurrentLoginUser(@Valid UserInfoEditForm form, BindingResult binding) {
+		// 表单校验
+		SsoResult res = new SsoResult();
+		if (binding.hasErrors()) {
+			res.setCode(FAIL);
+			res.setMsg(errors(binding.getAllErrors()));
+			return res;
 		}
+		
+		LoginUser loginUser = getLoginUser();
+		
+		UserInfo udp = new UserInfo();
+		udp.setId(loginUser.getUserId());
+		udp.setRealName(form.getRealName());
+		udp.setPhone(form.getPhone());
+		udp.setEmail(form.getEmail());
+		udp.setNote(form.getNote());
+
+		// check phone
+		userInfoService.checkExist(res, loginUser.getUserId(), null, form.getPhone(), null);
+		if (res.getCode()!=SUCESS) {
+			return res;
+		}
+		// check email
+		userInfoService.checkExist(res, loginUser.getUserId(), null, null, form.getEmail());
+		if (res.getCode()!=SUCESS) {
+			return res;
+		}
+
+		res.setModel(userInfoService.updateById(udp)==1);
 		return res;
 	}
-
+	
 	protected void saveLoginUser(LoginUser loginUser) {
 		if (loginUser==null) {
 			return;
 		}
 		getRequest().getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser.toString());
-	}
-
-	/**
-	 * 退出过滤器已处理
-	 * @return
-	 */
-	@PostMapping("/sign/out")
-	public SsoResult signOut() {
-		SsoResult res = new SsoResult();
-		SsoUtil.invalidateSession(getRequest().getSession());
-		return res;
-	}
-
-	/**
-	 * 校验token
-	 * @return
-	 */
-	@PostMapping("/login/validate")
-	public SsoResult loginValidate(@RequestParam(required=true) String data) {
-
-		RsaJsEncryptor encryptor = keyPair.getRsaJsEncryptor();
-		try {
-			if (ssoProperties.isEnabledRsa()) {
-				data = encryptor.decrypt(data);
-			}
-		} catch (Exception e) {
-			LOGGER.error("", e);
-			SsoResult res = new SsoResult();
-			res.setCode(I18nCodes.getCode(MSGE000012));
-			res.setModel(new I18nModel(MSGE000012));
-			return res;
-		}
-
-		try {
-			ServiceTicket st = JSON.parseObject(data, ServiceTicket.class);
-			return userInfoService.validate(st);
-		} catch (Exception e) {
-			LOGGER.error("", e);
-			SsoResult res = new SsoResult();
-			res.setCode(I18nCodes.getCode(MSGC000007));
-			res.setModel(new I18nModel(MSGC000007, "data", data));
-			return res;
-		}
-	}
-
-	@GetMapping("/user/current")
-	public SsoResult getCurrentLoginUser() {
-		return new SsoResult(getLoginUser());
 	}
 
 }

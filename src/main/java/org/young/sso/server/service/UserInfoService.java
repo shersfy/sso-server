@@ -44,5 +44,15 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 
 	SsoResult updatePassword(LoginUser loginUser, String code, String password);
 
+	/**
+	 * check唯一性
+	 * @param res
+	 * @param id
+	 * @param username
+	 * @param phone
+	 * @param email
+	 */
+	void checkExist(SsoResult res, Long userId, String username, String phone, String email);
+
 
 }
