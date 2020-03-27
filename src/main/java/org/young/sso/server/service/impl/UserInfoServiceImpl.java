@@ -132,6 +132,11 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	public SsoResult validate(ServiceTicket st) {
 		return null;
 	}
+	
+	@Override
+	public String generateST(String remoteAddr, String tgc) {
+		return null;
+	}
 
 	@Override
 	public String generateRequestKey(String remoteAddr) {

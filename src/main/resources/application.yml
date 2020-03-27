@@ -7,10 +7,10 @@ server:
 # spring
 spring:
   session:
-    store-type: none
+    store-type: redis
     redis:
       namespace: ${spring.application.name}:session
-    timeout:
+    timeout: 
       seconds: 1800
   redis:
     url: redis://10.32.15.78:6379
@@ -67,7 +67,6 @@ spring:
 swagger:
   enabled: true
 prelogin:
-  enabled: false
   user-id: 1
 sms:
   enabled: true
@@ -81,6 +80,7 @@ email:
   default-subject: 验证码 - EDP认证中心
 sso:
   enabled: true
+  webapp-server: '#'
   async-supported: false
   auto-remove-webapp-from-server: false
   token-max-age-seconds: 60

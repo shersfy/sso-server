@@ -25,6 +25,7 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 	 */
 	SsoResult validate(ServiceTicket st);
 	
+	String generateST(String remoteAddr, String tgc);
 	
 	String generateRequestKey(String remoteAddr);
 	

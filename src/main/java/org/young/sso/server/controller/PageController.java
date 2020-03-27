@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.young.sso.sdk.autoconfig.ConstSso;
+import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.server.service.UserInfoService;
 
 @Controller
@@ -15,52 +17,58 @@ public class PageController extends BaseController {
 	@Autowired
 	private UserInfoService userInfoService;
 	
+	@Autowired
+	private SsoProperties ssoProperties;
+	
 	@GetMapping("/")
 	public ModelAndView index(String webapp) {
-		ModelAndView mv = new ModelAndView("index");
+		ModelAndView mv = new ModelAndView("redirect:/goto");
+		if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
+			// 默认应用首页为空，重定向到sso server首页
+			webapp = ssoProperties.getWebappServer();
+			if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
+				mv.setViewName("index");
+				return mv;
+			}
+		}
+		mv.addObject("webapp", webapp);
 		return mv;
 	}
 
 	@GetMapping("/index")
 	public ModelAndView index2() {
-		ModelAndView mv = new ModelAndView("redirect:/");
+		ModelAndView mv = new ModelAndView("redirect:/goto");
 		return mv;
 	}
 
 	@GetMapping("/index.html")
 	public ModelAndView index3() {
-		ModelAndView mv = new ModelAndView("redirect:/");
+		ModelAndView mv = new ModelAndView("redirect:/goto");
 		return mv;
 	}
 
 	@GetMapping("/goto")
-	public ModelAndView gotoWebapp(String webapp, String tenant) {
+	public ModelAndView gotoWebapp(String webapp) {
 		
-		ModelAndView mv = new ModelAndView("redirect:/");
+		ModelAndView mv = new ModelAndView();
 		if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
-			return mv;
+			// 默认应用首页为空，重定向到sso server首页
+			webapp = ssoProperties.getWebappServer();
+			if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
+				mv.setViewName("redirect:/");
+				return mv;
+			}
 		}
 		
 		try {
 			webapp = URLDecoder.decode(webapp, "UTF-8");
-			String webappServer = getBaseServerUrl(webapp);
-			
-			// 移除首页地址不匹配
-			webapp = webapp.replaceFirst("http://|https://", "");
-			webapp = webapp.contains("?") ?webapp.substring(0, webapp.indexOf("?")) :webapp;
-			
-			String key = userInfoService.generateRequestKey(getRemoteAddr());
+			String rk = userInfoService.generateRequestKey(getRemoteAddr());
+			String st = userInfoService.generateST(getRemoteAddr(), getTGC());
 			StringBuilder redirect = new StringBuilder(0);
-//			redirect.append(appinfo.getWebappHome());
-//			redirect.append(appinfo.getWebappHome().contains("?")?"&":"?").append(ConstSso.LOGIN_TOKEN_KEY).append("=").append(getToken());
-//			redirect.append("&").append(ConstSso.LOGIN_REQUEST_KEY).append("=").append(key);
-//			redirect.append("&").append(ConstSso.WEBAPP_ID).append("=").append(apps.get(0).getId());
-//			if (tenant!=null) {
-//				redirect.append("&tenant=").append(tenant);
-//			}
-//			if (state!=null) {
-//				redirect.append("&").append(state.toString());
-//			}
+			redirect.append(webapp);
+			redirect.append(webapp.contains("?")? "&" :"?");
+			redirect.append(ConstSso.LOGIN_REQUEST_KEY).append("=").append(rk);
+			redirect.append("&").append(ConstSso.LOGIN_ST_KEY).append("=").append(st);
 			mv.setViewName("redirect:"+redirect.toString());
 			
 			return mv;

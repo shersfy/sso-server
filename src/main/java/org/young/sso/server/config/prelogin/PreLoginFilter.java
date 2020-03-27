@@ -1,4 +1,4 @@
-package org.young.sso.server.prelogin;
+package org.young.sso.server.config.prelogin;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -40,7 +40,7 @@ public class PreLoginFilter implements Filter {
 
 	public PreLoginFilter(UserInfoService userInfoService, SsoProperties ssoProperties, PreLoginProperties preLoginProperties) {
 		this.userInfoService = userInfoService;
-		this.ssoProperties = ssoProperties;
+		this.ssoProperties   = ssoProperties;
 		this.preLoginProperties = preLoginProperties;
 	}
 

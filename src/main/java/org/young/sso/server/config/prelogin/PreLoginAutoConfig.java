@@ -1,4 +1,4 @@
-package org.young.sso.server.prelogin;
+package org.young.sso.server.config.prelogin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -11,7 +11,7 @@ import org.young.sso.server.service.UserInfoService;
 
 @Configuration
 @EnableConfigurationProperties(PreLoginProperties.class)
-@ConditionalOnProperty(prefix=PreLoginProperties.PREFIX, value="enabled", havingValue="true")
+@ConditionalOnProperty(prefix=SsoProperties.PREFIX, value="enabled", havingValue="false")
 public class PreLoginAutoConfig {
 	
 	@Bean
