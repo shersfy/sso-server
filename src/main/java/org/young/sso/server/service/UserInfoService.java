@@ -1,10 +1,10 @@
 package org.young.sso.server.service;
 
 import org.young.sso.sdk.resource.LoginUser;
-import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.server.beans.IdInfo;
 import org.young.sso.server.controller.form.PasswordForgetForm;
+import org.young.sso.server.controller.form.ValidateForm;
 import org.young.sso.server.model.UserInfo;
 
 public interface UserInfoService extends BaseService<UserInfo, Long> {
@@ -20,10 +20,10 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 
 	/**
 	 * 登录校验
-	 * @param st
+	 * @param form
 	 * @return
 	 */
-	SsoResult validate(ServiceTicket st);
+	SsoResult validate(ValidateForm form);
 	
 	SsoResult sendCodeToPhone(LoginUser loginUser);
 
@@ -43,10 +43,12 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 	 */
 	void checkExist(SsoResult res, Long userId, String username, String phone, String email);
 
+	String generateTGC(LoginUser loginUser, String session);
 
 	String generateRequestKey(String remoteAddr);
 
 	long countRequestKey(String prefix);
 
 	SsoResult checkRequestKey(String key, String remoteAddr);
+
 }

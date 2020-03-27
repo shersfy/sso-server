@@ -1,6 +1,8 @@
 package org.young.sso.server.controller;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -10,6 +12,8 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class BaseErrorController extends BaseController 
 	implements ErrorController{
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	@Override
 	public String getErrorPath() {

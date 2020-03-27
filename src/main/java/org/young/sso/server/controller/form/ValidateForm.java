@@ -1,11 +1,7 @@
 package org.young.sso.server.controller.form;
 
-import javax.validation.constraints.NotBlank;
-
 import org.young.sso.sdk.resource.BaseBean;
 import org.young.sso.server.config.I18nCodes;
-
-import io.swagger.annotations.ApiModelProperty;
 
 public class ValidateForm extends BaseBean implements I18nCodes{
 
@@ -14,36 +10,26 @@ public class ValidateForm extends BaseBean implements I18nCodes{
 	/**
 	 * request key
 	 */
-	@ApiModelProperty(required=true)
-	@NotBlank(message = MSGC000003)
 	private String rk;
 	
 	/**
 	 * service ticket
 	 */
-	@ApiModelProperty(required=true)
-	@NotBlank(message = MSGC000003)
 	private String st;
 	
 	/**
 	 * 客户端应用session ID
 	 */
-	@ApiModelProperty(required=true)
-	@NotBlank(message = MSGC000003)
 	private String webappSession;
 	
 	/**
 	 * 客户端应用服务地址
 	 */
-	@ApiModelProperty(required=true)
-	@NotBlank(message = MSGC000003)
 	private String webappServer;
 	
 	/**
 	 * 客户端应用退出地址
 	 */
-	@ApiModelProperty(required=true)
-	@NotBlank(message = MSGC000003)
 	private String webappLogout;
 
 	public String getRk() {

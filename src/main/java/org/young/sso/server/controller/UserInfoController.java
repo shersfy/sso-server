@@ -2,8 +2,9 @@ package org.young.sso.server.controller;
 
 import javax.validation.Valid;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
-import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
 import org.young.sso.sdk.utils.SsoAESUtil;
@@ -22,7 +22,6 @@ import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.beans.IdInfo;
 import org.young.sso.server.beans.RequestKey;
-import org.young.sso.server.beans.TicketGrantingCookie;
 import org.young.sso.server.config.I18nCodes;
 import org.young.sso.server.config.RsaKeyPair;
 import org.young.sso.server.config.RsaKeyPair.RsaJsEncryptor;
@@ -30,6 +29,7 @@ import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.controller.form.PasswordEditForm;
 import org.young.sso.server.controller.form.PasswordForgetForm;
 import org.young.sso.server.controller.form.UserInfoEditForm;
+import org.young.sso.server.controller.form.ValidateForm;
 import org.young.sso.server.logs.LogManager;
 import org.young.sso.server.logs.LoginLog;
 import org.young.sso.server.model.UserInfo;
@@ -39,6 +39,8 @@ import com.alibaba.fastjson.JSON;
 
 @RestController
 public class UserInfoController extends BaseController {
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	@Lazy
 	@Autowired
@@ -79,30 +81,29 @@ public class UserInfoController extends BaseController {
 			}
 
 			LoginUser loginUser = (LoginUser) res.getModel();
-			String uuid = String.valueOf(System.nanoTime());
-			LoginLog log = new LoginLog(uuid, loginUser.getUserId(), loginUser.getUsername(), 
-					getRemoteAddr(), getRemoteHost(), idInfo.getLang(), 
-					getBasePath()+"/sign/in", System.currentTimeMillis());
-			// TGC
-			TicketGrantingCookie tgc = new TicketGrantingCookie(loginUser.getUserId(), 
-					loginUser.getUsername(), getRequest().getSession().getId());
-			tgc.setLoginTimestamp(System.currentTimeMillis());
-			tgc.setRandom(RandomStringUtils.random(6));
-			tgc.setLoginId(log.getUuid());
-
+			
+			Long userId = loginUser.getUserId();
+			String username = loginUser.getUsername();
+			String remoteAddr = getRemoteAddr();
+			String remoteHost = getRemoteHost();
+			String loginLang  = idInfo.getLang();
+			String loginUrl   = getBasePath()+"/sign/in";
+			
+			// 记录登录日志
+			LoginLog log = new LoginLog(userId, username, remoteAddr, remoteHost, loginLang, loginUrl);
+			logManager.sendLog(log);
+			
+			loginUser.setLoginId(log.getLoginId());
 			// 存储TGC
-			String tgcStr = SsoAESUtil.encryptHexStr(tgc.toString(), SsoAESUtil.AES_SEED);
-			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgcStr);
+			String tgc = userInfoService.generateTGC(loginUser, getRequest().getSession().getId());
+			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgc);
 			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, log.getLoginLang());
 
 			// 存储登录用户信息
 			saveLoginUser(loginUser);
 
-			// 记录登录日志
-
-			logManager.sendLog(log);
-			LOGGER.info("sign in successful. session={}, t={}", 
-					getRequest().getSession().getId(), SsoUtil.hiddenToken(tgcStr));
+			LOGGER.info("sign in successful. session={}, TGC={}", 
+					getRequest().getSession().getId(), SsoUtil.hiddenToken(tgc));
 
 		} catch (Exception e) {
 			LOGGER.error("id="+id, e);
@@ -164,8 +165,8 @@ public class UserInfoController extends BaseController {
 		}
 
 		try {
-			ServiceTicket st = JSON.parseObject(data, ServiceTicket.class);
-			return userInfoService.validate(st);
+			ValidateForm form = JSON.parseObject(data, ValidateForm.class);
+			return userInfoService.validate(form);
 		} catch (Exception e) {
 			LOGGER.error("", e);
 			SsoResult res = new SsoResult();

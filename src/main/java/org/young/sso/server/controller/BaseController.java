@@ -15,8 +15,6 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
@@ -35,7 +33,6 @@ import com.alibaba.fastjson.JSON;
 
 public class BaseController implements I18nCodes{
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(BaseController.class);
 	protected static final int SUCESS = ResultCode.SUCESS;
 	protected static final int FAIL	  = ResultCode.FAIL;
 

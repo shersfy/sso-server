@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSON;
 public abstract class BaseServiceImpl<T extends BaseEntity, Id extends Serializable> 
 	implements BaseService<T, Id> {
 	
-	protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	public abstract BaseMapper<T, Id> getMapper();
 	

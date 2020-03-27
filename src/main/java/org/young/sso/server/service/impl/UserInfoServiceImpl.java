@@ -1,5 +1,7 @@
 package org.young.sso.server.service.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -8,6 +10,8 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -16,16 +20,19 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.young.sso.sdk.exception.SsoException;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.beans.IdInfo;
+import org.young.sso.server.config.I18nCodes;
 import org.young.sso.server.config.email.EmailSenderProperties;
 import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.config.sms.SmsSender;
 import org.young.sso.server.controller.form.PasswordForgetForm;
+import org.young.sso.server.controller.form.ValidateForm;
 import org.young.sso.server.kdc.KeyDistributionCenter;
 import org.young.sso.server.mapper.BaseMapper;
 import org.young.sso.server.mapper.UserInfoMapper;
@@ -37,6 +44,8 @@ import org.young.sso.server.utils.MD5Util;
 @Transactional
 public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	implements UserInfoService {
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private UserInfoMapper mapper;
@@ -132,9 +141,69 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	}
 
 	@Override
-	public SsoResult validate(ServiceTicket st) {
+	public SsoResult validate(ValidateForm form) {
 		SsoResult res = new SsoResult();
-		res.setModel(st);
+		if (StringUtils.isBlank(form.getRk())) {
+			LOGGER.error("validate error: rk cannot be blank");
+			res.setCode(I18nCodes.getCode(MSGC000003));
+			res.setModel(new I18nModel(MSGC000003, "rk"));
+			return res;
+		}
+		
+		if (StringUtils.isBlank(form.getSt())) {
+			LOGGER.error("validate error: st cannot be blank");
+			res.setCode(I18nCodes.getCode(MSGC000003));
+			res.setModel(new I18nModel(MSGC000003, "st"));
+			return res;
+		}
+		
+		if (StringUtils.isBlank(form.getWebappSession())) {
+			LOGGER.error("validate error: webappSession cannot be blank");
+			res.setCode(I18nCodes.getCode(MSGC000003));
+			res.setModel(new I18nModel(MSGC000003, "webappSession"));
+			return res;
+		}
+		
+		if (StringUtils.isBlank(form.getWebappServer())) {
+			LOGGER.error("validate error: webappServer cannot be blank");
+			res.setCode(I18nCodes.getCode(MSGC000003));
+			res.setModel(new I18nModel(MSGC000003, "webappServer"));
+			return res;
+		}
+		
+		ServiceTicket st = kdc.getST(form.getSt());
+		if (st==null) {
+			LOGGER.error("validate error: '{}' st already expired", form.getSt());
+			res.setCode(I18nCodes.getCode(MSGE000003));
+			res.setModel(new I18nModel(MSGE000003));
+			return res;
+		}
+		
+		// 验证rk与sso服务器缓存相同
+		if (!st.getRk().equals(form.getRk())) {
+			LOGGER.error("validate error: sso server cached rk '{}' not equals webapp rk '{}'", 
+					st.getRk(), form.getRk());
+			res.setCode(I18nCodes.getCode(MSGE000004));
+			res.setModel(new I18nModel(MSGE000004));
+			return res;
+		}
+		
+		// 验证apphost与apphost服务器缓存相同
+		try {
+			String apphost = new URL(form.getWebappServer()).getHost();
+			if (!st.getApphost().equals(apphost)) {
+				LOGGER.error("validate error: sso server cached apphost '{}' not equals apphost '{}'", 
+						st.getApphost(), apphost);
+				throw new MalformedURLException(form.getWebappServer());
+			} 
+		} catch (Exception e) {
+			LOGGER.error(SsoException.getRootCauseMsg(e));
+			res.setCode(I18nCodes.getCode(MSGE000004));
+			res.setModel(new I18nModel(MSGE000004));
+			return res;
+		}
+		
+		res.setModel(st.getTgc());
 		return res;
 	}
 
@@ -432,6 +501,11 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 				}
 			}
 		}
+	}
+	
+	@Override
+	public String generateTGC(LoginUser loginUser, String session) {
+		return kdc.generateTGC(loginUser, session);
 	}
 
 	@Override

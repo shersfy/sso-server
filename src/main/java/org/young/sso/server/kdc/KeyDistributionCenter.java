@@ -4,15 +4,19 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.young.sso.sdk.autoconfig.SsoProperties;
+import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.ServiceTicket;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.server.beans.BaseEntity;
 import org.young.sso.server.beans.Const;
+import org.young.sso.server.beans.TicketGrantingCookie;
 import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.mapper.BaseMapper;
 import org.young.sso.server.service.impl.BaseServiceImpl;
@@ -21,6 +25,8 @@ import org.young.sso.server.utils.MD5Util;
 
 @Component
 public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
 	private StringRedisTemplate redis;
@@ -31,6 +37,19 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 	@Override
 	public BaseMapper<BaseEntity, Long> getMapper() {
 		return null;
+	}
+	
+	public String generateTGC(LoginUser loginUser, String sessionId) {
+		Long userId = loginUser.getUserId();
+		String username = loginUser.getUsername();
+		
+		TicketGrantingCookie tgc = new TicketGrantingCookie(userId, username, sessionId);
+		tgc.setLoginId(loginUser.getLoginId());
+		tgc.setLoginTimestamp(System.currentTimeMillis());
+		tgc.setRandom(RandomStringUtils.random(Const.RANDOM_LEN));
+		
+		String tgcMd5 = MD5Util.encode(tgc.toString());
+		return tgcMd5;
 	}
 	
 	/**
@@ -125,5 +144,9 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 		return cnt;
 	}
 
+	public ServiceTicket getST(String st) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
