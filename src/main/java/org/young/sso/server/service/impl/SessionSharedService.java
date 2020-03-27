@@ -143,7 +143,7 @@ public class SessionSharedService implements SessionSharedListener{
 	@Override
 	public void sessionDestroyed(HttpSessionEvent event) {
 		String sessionId = event.getSession().getId();
-		Object tgc = event.getSession().getAttribute(ConstSso.LOGIN_TGC_KEY);
+		Object tgc = event.getSession().getAttribute(ConstSso.LOGIN_TICKET_KEY);
 		if (tgc==null) {
 			return;
 		}

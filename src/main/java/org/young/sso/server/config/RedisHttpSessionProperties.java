@@ -11,7 +11,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 @RefreshScope
-@ConfigurationProperties
+@ConfigurationProperties(prefix = "spring.session")
 public class RedisHttpSessionProperties {
 
 	@Value("${spring.session.timeout.seconds}")
@@ -19,6 +19,8 @@ public class RedisHttpSessionProperties {
 
 	@Value("${spring.session.redis.namespace}")
 	private String namespace = "spring:session";
+	
+	private String idkey = "_sso_";
 
 	@Autowired
 	private StringRedisTemplate redis;
@@ -85,6 +87,14 @@ public class RedisHttpSessionProperties {
 
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
+	}
+
+	public String getIdkey() {
+		return idkey;
+	}
+
+	public void setIdkey(String idkey) {
+		this.idkey = idkey;
 	}
 
 }

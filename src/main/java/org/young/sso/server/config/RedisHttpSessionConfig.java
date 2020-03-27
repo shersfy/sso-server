@@ -36,7 +36,7 @@ public class RedisHttpSessionConfig {
 	public CookieSerializer cookieSerializer() {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookiePath("/");
-		serializer.setCookieName("_edp_");
+		serializer.setCookieName(sessionProperties.getIdkey());
 		return serializer;
 	}
 	

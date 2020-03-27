@@ -68,7 +68,7 @@ public class PageController extends BaseController {
 			redirect.append(webapp);
 			redirect.append(webapp.contains("?")? "&" :"?");
 			redirect.append(ConstSso.LOGIN_REQUEST_KEY).append("=").append(rk);
-			redirect.append("&").append(ConstSso.LOGIN_ST_KEY).append("=").append(st);
+			redirect.append("&").append(ConstSso.LOGIN_TICKET_KEY).append("=").append(st);
 			mv.setViewName("redirect:"+redirect.toString());
 			
 			return mv;

@@ -130,12 +130,14 @@ implements UserInfoService {
 
 	@Override
 	public SsoResult validate(ServiceTicket st) {
-		return null;
+		SsoResult res = new SsoResult();
+		res.setModel(st);
+		return res;
 	}
 
 	@Override
 	public String generateST(String remoteAddr, String tgc) {
-		return null;
+		return "ST-"+RandomStringUtils.random(6);
 	}
 
 	@Override

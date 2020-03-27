@@ -89,7 +89,7 @@ public class BaseController implements I18nCodes{
 	}
 	
 	public String getTGC() {
-		Object tgc = getRequest().getSession().getAttribute(ConstSso.LOGIN_TGC_KEY);
+		Object tgc = getRequest().getSession().getAttribute(ConstSso.LOGIN_TICKET_KEY);
 		return tgc==null?null:tgc.toString();
 	}
 

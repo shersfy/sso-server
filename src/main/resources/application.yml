@@ -7,6 +7,7 @@ server:
 # spring
 spring:
   session:
+    idkey: _edp_
     store-type: redis
     redis:
       namespace: ${spring.application.name}:session
