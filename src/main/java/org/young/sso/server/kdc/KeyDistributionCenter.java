@@ -39,17 +39,17 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 		return null;
 	}
 	
-	public String generateTGC(LoginUser loginUser, String sessionId) {
+	public String generateTGC(LoginUser loginUser, String session) {
 		Long userId = loginUser.getUserId();
 		String username = loginUser.getUsername();
 		
-		TicketGrantingCookie tgc = new TicketGrantingCookie(userId, username, sessionId);
+		TicketGrantingCookie tgc = new TicketGrantingCookie(userId, username, session);
 		tgc.setLoginId(loginUser.getLoginId());
 		tgc.setLoginTimestamp(System.currentTimeMillis());
-		tgc.setRandom(RandomStringUtils.random(Const.RANDOM_LEN));
+		tgc.setRandom(RandomStringUtils.randomAlphanumeric(Const.RANDOM_LEN));
 		
-		String tgcMd5 = MD5Util.encode(tgc.toString());
-		return tgcMd5;
+		String entgc = SsoAESUtil.encryptHexStr(tgc.toString(), tgc.getRandom());
+		return entgc;
 	}
 	
 	/**
