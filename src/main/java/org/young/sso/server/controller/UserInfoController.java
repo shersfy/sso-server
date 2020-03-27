@@ -4,6 +4,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.validation.BindingResult;
@@ -294,34 +295,38 @@ public class UserInfoController extends BaseController {
 		}
 		
 		LoginUser loginUser = getLoginUser();
+		loginUser.setRealName(form.getRealName());
+		loginUser.setPhone(form.getPhone());
+		loginUser.setEmail(form.getEmail());
+		loginUser.setNote(form.getNote());
 		
 		UserInfo udp = new UserInfo();
 		udp.setId(loginUser.getUserId());
-		udp.setRealName(form.getRealName());
-		udp.setPhone(form.getPhone());
-		udp.setEmail(form.getEmail());
-		udp.setNote(form.getNote());
+		try {
+			BeanUtils.copyProperties(loginUser, udp);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
 
 		// check phone
-		userInfoService.checkExist(res, loginUser.getUserId(), null, form.getPhone(), null);
+		userInfoService.checkExist(res, loginUser.getUserId(), null, udp.getPhone(), null);
 		if (res.getCode()!=SUCESS) {
 			return res;
 		}
 		// check email
-		userInfoService.checkExist(res, loginUser.getUserId(), null, null, form.getEmail());
+		userInfoService.checkExist(res, loginUser.getUserId(), null, null, udp.getEmail());
 		if (res.getCode()!=SUCESS) {
 			return res;
 		}
-
-		res.setModel(userInfoService.updateById(udp)==1);
-		return res;
-	}
-	
-	protected void saveLoginUser(LoginUser loginUser) {
-		if (loginUser==null) {
-			return;
+		
+		if (userInfoService.updateById(udp)==1) {
+			saveLoginUser(loginUser);
+			res.setModel(true);
+		} else {
+			res.setModel(true);
 		}
-		getRequest().getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser.toString());
+
+		return res;
 	}
 
 }

@@ -24,11 +24,9 @@ CREATE TABLE `user_info` (
   UNIQUE KEY `uk_stat_username` (`username`,`status`) USING BTREE COMMENT 'uk_stat_username',
   UNIQUE KEY `uk_stat_phone` (`phone`,`status`) USING BTREE COMMENT 'uk_stat_phone',
   UNIQUE KEY `uk_stat_email` (`email`,`status`) COMMENT 'uk_stat_email'
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='用户信息';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户信息';
 
 -- ----------------------------
 -- Records of user_info
--- ssoadmin/123456
 -- ----------------------------
-INSERT INTO `user_info` VALUES ('1', 'ssoadmin', '埃斯阿达米', 'e10adc3949ba59abbe56e057f20f883e', '13512345678', 'shersfy@163.com', null, '0', '2020-03-26 13:49:23', '2020-03-01 00:00:00');
-
+INSERT INTO `user_info` VALUES ('1', 'asadmin', '埃斯阿达米', 'e10adc3949ba59abbe56e057f20f883e', '13512345678', 'shersfy@163.com', '内置用户', '-1', '2020-03-27 11:49:04', '2020-03-01 00:00:00');

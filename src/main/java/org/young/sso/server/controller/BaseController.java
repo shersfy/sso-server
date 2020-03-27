@@ -75,6 +75,13 @@ public class BaseController implements I18nCodes{
 	public String getBasePath() {
 		return getRequest().getAttribute(ConstSso.BASE_PATH).toString();
 	}
+	
+	protected void saveLoginUser(LoginUser loginUser) {
+		if (loginUser==null) {
+			return;
+		}
+		getRequest().getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser.toString());
+	}
 
 	public LoginUser getLoginUser() {
 		Object user = getRequest().getSession().getAttribute(Const.SESSION_LOGIN_USER);
