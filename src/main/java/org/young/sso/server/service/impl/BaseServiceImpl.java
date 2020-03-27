@@ -100,17 +100,20 @@ public abstract class BaseServiceImpl<T extends BaseEntity, Id extends Serializa
 		return vo;
 	}
 	
-	protected String getCacheKey(String methodName, String suffix) {
+	@Override
+	public String getCacheKey(String prefix) {
+		prefix = StringUtils.isBlank(prefix)?this.getClass().getName():prefix.trim();
+		prefix = String.format("%s:%s", config.getApplication(), prefix);
+		return prefix;
+	}
+	
+	@Override
+	public String getCacheKey(String methodName, String suffix) {
 		methodName = StringUtils.isBlank(methodName)?"":methodName.trim();
 		suffix = StringUtils.isBlank(suffix)?"":suffix.trim();
 		String key = String.format("%s:%s.%s%s", config.getApplication(), this.getClass().getName(), methodName, suffix);
 		return key;
 	}
 	
-	protected String getCacheKey(String key) {
-		key = StringUtils.isBlank(key)?this.getClass().getName():key.trim();
-		key = String.format("%s:%s", config.getApplication(), key);
-		return key;
-	}
 	
 }

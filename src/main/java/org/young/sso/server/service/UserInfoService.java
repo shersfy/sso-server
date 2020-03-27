@@ -25,17 +25,6 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 	 */
 	SsoResult validate(ServiceTicket st);
 	
-	String generateST(String remoteAddr, String tgc);
-	
-	String generateRequestKey(String remoteAddr);
-	
-	SsoResult checkRequestKey(String key, String remoteAddr);
-	
-	long countRequestKey(String prefix);
-
-	String getCacheKeyPrefix(String prefix);
-
-
 	SsoResult sendCodeToPhone(LoginUser loginUser);
 
 	SsoResult sendCodeToEmail(LoginUser loginUser);
@@ -55,4 +44,9 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 	void checkExist(SsoResult res, Long userId, String username, String phone, String email);
 
 
+	String generateRequestKey(String remoteAddr);
+
+	long countRequestKey(String prefix);
+
+	SsoResult checkRequestKey(String key, String remoteAddr);
 }

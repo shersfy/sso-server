@@ -26,18 +26,17 @@ import org.young.sso.server.config.email.EmailSenderProperties;
 import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.config.sms.SmsSender;
 import org.young.sso.server.controller.form.PasswordForgetForm;
+import org.young.sso.server.kdc.KeyDistributionCenter;
 import org.young.sso.server.mapper.BaseMapper;
 import org.young.sso.server.mapper.UserInfoMapper;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
-import org.young.sso.server.utils.AesUtil;
-import org.young.sso.server.utils.DateUtil;
 import org.young.sso.server.utils.MD5Util;
 
 @Service
 @Transactional
 public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
-implements UserInfoService {
+	implements UserInfoService {
 
 	@Autowired
 	private UserInfoMapper mapper;
@@ -46,15 +45,19 @@ implements UserInfoService {
 	private StringRedisTemplate redis;
 
 	@Autowired
+	private KeyDistributionCenter kdc;
+
+	@Autowired
 	private SmsSender smsSender;
 
 	@Autowired
 	@Lazy
 	private JavaMailSender javaMailSender;
+	
 
 	@Autowired
 	private EmailSenderProperties emailProperties;
-
+	
 	@Override
 	public BaseMapper<UserInfo, Long> getMapper() {
 		return mapper;
@@ -133,79 +136,6 @@ implements UserInfoService {
 		SsoResult res = new SsoResult();
 		res.setModel(st);
 		return res;
-	}
-
-	@Override
-	public String generateST(String remoteAddr, String tgc) {
-		return "ST-"+RandomStringUtils.randomAlphanumeric(Const.RANDOM_LEN);
-	}
-
-	@Override
-	public String generateRequestKey(String remoteAddr) {
-		String timestamp = DateUtil.format(System.currentTimeMillis(), "yyyyMMddHHmmssSSS")
-				+RandomStringUtils.randomNumeric(5);
-		String key = getCacheKeyPrefix(Const.LOGIN_CACHE_KEY_PREFIX);
-		key = String.format("%s_%s_%s", key, remoteAddr, timestamp);
-		String ency = AesUtil.encryptHexStr(key, AesUtil.AES_SEED);
-
-		redis.opsForValue().set(key, ency, properties.getRequestKeyMaxAgeSeconds(), TimeUnit.SECONDS);
-		return ency;
-	}
-
-	@Override
-	public SsoResult checkRequestKey(String key, String remoteAddr) {
-
-		SsoResult res = new SsoResult();
-		if (StringUtils.isBlank(key)) {
-			res.setCode(FAIL);
-			res.setModel(new I18nModel(MSGC000003, "k"));
-			return res;
-		}
-		// 防伪造请求
-		if (!key.contains(remoteAddr)) {
-			res.setCode(FAIL);
-			res.setModel(new I18nModel(MSGE000004));
-			return res;
-		}
-
-		// key是否有效
-		String value = redis.opsForValue().get(key);
-		if (StringUtils.isBlank(value) || "deleted".equals(value)) {
-			res.setCode(FAIL);
-			res.setModel(new I18nModel(MSGE000003));
-			return res;
-		}
-
-		invalidRequestKey(key);
-		return res;
-
-	}
-
-	public void invalidRequestKey(String key) {
-		if (StringUtils.isBlank(key)) {
-			return;
-		}
-		redis.opsForValue().set(key, "deleted", redis.getExpire(key), TimeUnit.SECONDS);
-	}
-
-	@Override
-	public long countRequestKey(String remoteAddr) {
-		int cnt = 0;
-		try {
-			cnt = redis.keys(String.format("*%s*", remoteAddr)).size();
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		}
-		return cnt;
-	}
-
-	@Override
-	public String getCacheKeyPrefix(String prefix) {
-		if (StringUtils.isBlank(prefix)) {
-			return "";
-		}
-		prefix = String.format("%s:%s", config.getApplication(), prefix);
-		return prefix;
 	}
 
 	@Override
@@ -502,6 +432,21 @@ implements UserInfoService {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String generateRequestKey(String remoteAddr) {
+		return kdc.generateRequestKey(remoteAddr);
+	}
+
+	@Override
+	public long countRequestKey(String prefix) {
+		return kdc.countRequestKey(prefix);
+	}
+
+	@Override
+	public SsoResult checkRequestKey(String key, String remoteAddr) {
+		return kdc.checkRequestKey(key, remoteAddr);
 	}
 
 }

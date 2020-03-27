@@ -23,6 +23,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.young.sso.sdk.autoconfig.ConstSso;
+import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
 import org.young.sso.server.beans.Const;
@@ -43,6 +44,9 @@ public class BaseController implements I18nCodes{
 
 	@Autowired
 	protected AppProperties properties;
+	
+	@Autowired
+	protected SsoProperties ssoProperties;
 	
 	@Autowired
 	private I18nMessages i18n;

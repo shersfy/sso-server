@@ -1,26 +1,22 @@
 package org.young.sso.server.controller;
 
+import java.net.URL;
 import java.net.URLDecoder;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.young.sso.sdk.autoconfig.ConstSso;
-import org.young.sso.sdk.autoconfig.SsoProperties;
-import org.young.sso.server.beans.Const;
-import org.young.sso.server.service.UserInfoService;
+import org.young.sso.server.kdc.KeyDistributionCenter;
+import org.young.sso.server.utils.AesUtil;
 
 @Controller
 public class PageController extends BaseController {
 
 	@Autowired
-	private UserInfoService userInfoService;
-	
-	@Autowired
-	private SsoProperties ssoProperties;
+	private KeyDistributionCenter kdc;
 	
 	@GetMapping("/")
 	public ModelAndView index(String webapp) {
@@ -64,8 +60,12 @@ public class PageController extends BaseController {
 		
 		try {
 			webapp = URLDecoder.decode(webapp, "UTF-8");
-			String rk = "RK-"+RandomStringUtils.randomAlphanumeric(Const.RANDOM_LEN);
-			String st = userInfoService.generateST(getRemoteAddr(), getTGC());
+			String apphost = new URL(webapp).getHost();
+			
+			String rk = kdc.generateRequestKey();
+			String st = kdc.generateST(rk, getTGC(), apphost);
+			rk = "rk-"+AesUtil.encryptHexStr(rk, apphost);
+			
 			StringBuilder redirect = new StringBuilder(0);
 			redirect.append(webapp);
 			redirect.append(webapp.contains("?")? "&" :"?");

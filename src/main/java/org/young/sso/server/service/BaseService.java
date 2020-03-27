@@ -28,4 +28,8 @@ public interface BaseService<T extends BaseEntity, Id extends Serializable> exte
 	
 	List<T> findList(T where);
 
+	String getCacheKey(String prefix);
+
+	String getCacheKey(String methodName, String suffix);
+
 }

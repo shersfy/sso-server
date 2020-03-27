@@ -128,7 +128,7 @@ public class UserInfoController extends BaseController {
 	public SsoResult loginKey() {
 
 		SsoResult res = new SsoResult();
-		String prefix = userInfoService.getCacheKeyPrefix(Const.LOGIN_CACHE_KEY_PREFIX);
+		String prefix = userInfoService.getCacheKey(Const.LOGIN_CACHE_KEY_PREFIX);
 		prefix = String.format("%s_%s", prefix, getRemoteAddr());
 		// 限制次数
 		if (userInfoService.countRequestKey(prefix) >= properties.getRequestKeyMaxLimit()) {
