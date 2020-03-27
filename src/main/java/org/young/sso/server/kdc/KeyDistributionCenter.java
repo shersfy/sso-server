@@ -47,10 +47,13 @@ public class KeyDistributionCenter extends BaseServiceImpl<BaseEntity, Long>{
 		
 		st.setTgc(null);
 		String enst = st.toString();
-		
+		enst = "st-"+MD5Util.encode(enst);
 		try {
-			enst = "st-"+MD5Util.encode(enst);
-			redis.opsForValue().set(getCacheKey(enst), value, ssoProperties.getStMaxAgeSeconds(), TimeUnit.SECONDS);
+			String key = getCacheKey(enst);
+			if (redis.hasKey(key)) {
+				return generateST(rk, tgc, apphost);
+			}
+			redis.opsForValue().set(key, value, ssoProperties.getStMaxAgeSeconds(), TimeUnit.SECONDS);
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}
