@@ -10,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.young.sso.sdk.autoconfig.ConstSso;
 import org.young.sso.sdk.utils.SsoAESUtil;
-import org.young.sso.server.kdc.KeyDistributionCenter;
+import org.young.sso.server.beans.Const;
+import org.young.sso.server.service.kdc.KeyDistributionCenter;
+import org.young.sso.server.service.kdc.TicketGrantingTicket;
 
 @Controller
 public class PageController extends BaseController {
@@ -66,15 +67,17 @@ public class PageController extends BaseController {
 			webapp = URLDecoder.decode(webapp, "UTF-8");
 			String apphost = new URL(webapp).getHost();
 			
-			String rk = kdc.generateRequestKey();
-			String st = kdc.generateST(rk, getTGC(), apphost);
-			rk = "rk-"+SsoAESUtil.encryptHexStr(rk, apphost);
+			String tgc = getRequest().getSession().getId();
+			TicketGrantingTicket tgt = new TicketGrantingTicket(getLoginUser(), tgc);
+			String rk = tgt.getRandom();
+			String st = kdc.generateST(tgt, apphost);
+			rk = String.format("%s-%s", Const.TICKET_PREFIX_RK, SsoAESUtil.encryptHexStr(rk, apphost));
 			
 			StringBuilder redirect = new StringBuilder(0);
 			redirect.append(webapp);
 			redirect.append(webapp.contains("?")? "&" :"?");
-			redirect.append(ConstSso.LOGIN_TICKET_KEY).append("=").append(st);
-			redirect.append("&").append(ConstSso.LOGIN_REQUEST_KEY).append("=").append(rk);
+			redirect.append(Const.LOGIN_TICKET_KEY).append("=").append(st);
+			redirect.append("&").append(Const.LOGIN_REQUEST_KEY).append("=").append(rk);
 			mv.setViewName("redirect:"+redirect.toString());
 			
 			return mv;
@@ -99,7 +102,7 @@ public class PageController extends BaseController {
 			mv.addObject("webapp", webapp);
 		}
 		// 已登录
-		if (getTGC()!=null) {
+		if (getTGT()!=null) {
 			if (StringUtils.isNotBlank(webapp)) {
 				mv.setViewName("redirect:/goto");
 			} else {

@@ -1,7 +1,5 @@
 package org.young.sso.server.service.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -15,14 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.young.sso.sdk.exception.SsoException;
 import org.young.sso.sdk.resource.LoginUser;
-import org.young.sso.sdk.resource.ServiceTicket;
+import org.young.sso.sdk.resource.LoginWebapp;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
 import org.young.sso.server.beans.Const;
@@ -33,11 +29,13 @@ import org.young.sso.server.config.i18n.I18nModel;
 import org.young.sso.server.config.sms.SmsSender;
 import org.young.sso.server.controller.form.PasswordForgetForm;
 import org.young.sso.server.controller.form.ValidateForm;
-import org.young.sso.server.kdc.KeyDistributionCenter;
 import org.young.sso.server.mapper.BaseMapper;
 import org.young.sso.server.mapper.UserInfoMapper;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
+import org.young.sso.server.service.cache.CacheManager;
+import org.young.sso.server.service.kdc.KeyDistributionCenter;
+import org.young.sso.server.service.kdc.TicketGrantingTicket;
 import org.young.sso.server.utils.MD5Util;
 
 @Service
@@ -51,10 +49,13 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	private UserInfoMapper mapper;
 
 	@Autowired
-	private StringRedisTemplate redis;
+	private CacheManager cache;
 
 	@Autowired
 	private KeyDistributionCenter kdc;
+	
+	@Autowired
+	private SignOutService signOutService;
 
 	@Autowired
 	private SmsSender smsSender;
@@ -171,39 +172,41 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			return res;
 		}
 		
-		ServiceTicket st = kdc.getST(form.getSt());
-		if (st==null) {
+		if (StringUtils.isBlank(form.getWebappLogout())) {
+			LOGGER.error("validate error: webappLogout cannot be blank");
+			res.setCode(I18nCodes.getCode(MSGC000003));
+			res.setModel(new I18nModel(MSGC000003, "webappLogout"));
+			return res;
+		}
+		
+		// 验证ST有效性
+		TicketGrantingTicket tgt = kdc.getTGTByST(form.getSt());
+		if (tgt==null) {
 			LOGGER.error("validate error: '{}' st already expired", form.getSt());
 			res.setCode(I18nCodes.getCode(MSGE000003));
 			res.setModel(new I18nModel(MSGE000003));
 			return res;
 		}
 		
-		// 验证rk与sso服务器缓存相同
-		if (!st.getRk().equals(form.getRk())) {
-			LOGGER.error("validate error: sso server cached rk '{}' not equals webapp rk '{}'", 
-					st.getRk(), form.getRk());
+		// 验证RK与sso服务器缓存是否相同
+		if (!tgt.getRandom().equals(form.getRk())) {
+			LOGGER.error("validate error: sso server cached random '{}' not equals webapp rk '{}'", 
+					tgt.getRandom(), form.getRk());
 			res.setCode(I18nCodes.getCode(MSGE000004));
 			res.setModel(new I18nModel(MSGE000004));
 			return res;
 		}
 		
-		// 验证apphost与apphost服务器缓存相同
-		try {
-			String apphost = new URL(form.getWebappServer()).getHost();
-			if (!st.getApphost().equals(apphost)) {
-				LOGGER.error("validate error: sso server cached apphost '{}' not equals apphost '{}'", 
-						st.getApphost(), apphost);
-				throw new MalformedURLException(form.getWebappServer());
-			} 
-		} catch (Exception e) {
-			LOGGER.error(SsoException.getRootCauseMsg(e));
-			res.setCode(I18nCodes.getCode(MSGE000004));
-			res.setModel(new I18nModel(MSGE000004));
-			return res;
-		}
+		// 注册客户端应用
+		LoginWebapp webapp = new LoginWebapp(form.getWebappServer(), form.getWebappLogout());
+		webapp.getSessions().add(form.getWebappSession());
 		
-		res.setModel(st.getTgc());
+		List<LoginWebapp> webapps = signOutService.getLoginWebapps(tgt.getId());
+		webapps.add(webapp);
+		signOutService.setLoginWebapps(tgt.getId(), webapps);
+		
+		// 返回登录用户
+		res.setModel(tgt.getUser());
 		return res;
 	}
 
@@ -230,7 +233,7 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			LOGGER.error(res.getMsg());
 			res.setModel(new I18nModel(MSGE000031));
 			try {
-				redis.delete(getSendCodeLockKey(user.getUserId()));
+				cache.delete(getSendCodeLockKey(user.getUserId()));
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -283,7 +286,7 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			res.setCode(FAIL);
 			res.setModel(new I18nModel(MSGE000031));
 			try {
-				redis.delete(getSendCodeLockKey(user.getUserId()));
+				cache.delete(getSendCodeLockKey(user.getUserId()));
 			} catch (Exception e2) {
 				LOGGER.error("", e2);
 			}
@@ -296,13 +299,11 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 
 	private String getSendCodeKey(Long userId, String code) {
 		String key = String.format("send.code.to.user%s.%s", userId, code);
-		key = getCacheKey(key);
 		return key.toLowerCase();
 	}
 
 	private String getSendCodeLockKey(Long userId) {
 		String key = String.format("send.code.locked.by.user%s", userId);
-		key = getCacheKey(key);
 		return key;
 	}
 
@@ -310,18 +311,18 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	private void generateSendCodeMsg(LoginUser user, SsoResult res) {
 
 		String locked = getSendCodeLockKey(user.getUserId());
-		if (redis.hasKey(locked)) {
+		if (cache.hasKey(locked)) {
 			res.setCode(FAIL);
 			res.setModel(new I18nModel(MSGE000010));
 			return ;
 		}
-		redis.opsForValue().set(locked, "locked by "+user.getUsername(), 
+		cache.set(locked, "locked by "+user.getUsername(), 
 				properties.getSendVerifyCodeIntervalMinutes(), TimeUnit.MINUTES);
 
 		String code = RandomStringUtils.randomNumeric(Const.RANDOM_LEN);
 		String key  = getSendCodeKey(user.getUserId(), code);
 		int maxAge  = properties.getSendVerifyCodeMaxAgeMinutes();
-		redis.opsForValue().set(key, code, maxAge, TimeUnit.MINUTES);
+		cache.set(key, code, maxAge, TimeUnit.MINUTES);
 
 		res.setModel(code);
 	}
@@ -413,7 +414,7 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 
 		// 验证码校验
 		String key = getSendCodeKey(loginUser.getUserId(), code);
-		if (!redis.hasKey(key)) {
+		if (!cache.hasKey(key)) {
 			res.setCode(FAIL);
 			res.setModel(new I18nModel(MSGE000030));
 			return res;
@@ -427,8 +428,8 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 		udp.setStatus(NOR);
 
 		this.updateById(udp);
-		redis.delete(key);
-		redis.delete(getSendCodeLockKey(loginUser.getUserId()));
+		cache.delete(key);
+		cache.delete(getSendCodeLockKey(loginUser.getUserId()));
 
 		LOGGER.info("update password successful by user '{}'", loginUser.getUsername());
 		return res;
@@ -504,8 +505,8 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 	}
 	
 	@Override
-	public String generateTGC(LoginUser loginUser, String session) {
-		return kdc.generateTGC(loginUser, session);
+	public String generateTGT(LoginUser loginUser, String tgc) {
+		return kdc.generateTGT(loginUser, tgc);
 	}
 
 	@Override

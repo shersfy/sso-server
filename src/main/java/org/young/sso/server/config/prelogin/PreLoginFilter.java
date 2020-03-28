@@ -12,15 +12,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
-import org.young.sso.sdk.utils.SsoAESUtil;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
-import org.young.sso.server.beans.TicketGrantingCookie;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
 
@@ -33,8 +30,6 @@ public class PreLoginFilter implements Filter {
 	private SsoProperties ssoProperties;
 	
 	private PreLoginProperties preLoginProperties;
-	
-	private String tgcStr;
 	
 	private LoginUser loginUser;
 
@@ -60,19 +55,18 @@ public class PreLoginFilter implements Filter {
 		if (req.getSession().getAttribute(Const.SESSION_LOGIN_USER)==null) {
 			UserInfo testUser = userInfoService.findById(preLoginProperties.getUserId());
 			loginUser = userInfoService.poToLoginUser(testUser);
+			loginUser.setLoginId(String.valueOf(System.currentTimeMillis()));
 			
-			TicketGrantingCookie tgc = new TicketGrantingCookie(loginUser.getUserId(), loginUser.getUsername(), req.getSession().getId());
-			tgc.setLoginTimestamp(System.currentTimeMillis());
-			tgc.setRandom(RandomStringUtils.random(6));
-			tgc.setLoginId(String.valueOf(System.currentTimeMillis()));
+			req.getSession().invalidate();
+			String tgc = req.getSession().getId();
+			String tgt = userInfoService.generateTGT(loginUser, tgc);
 			
-			// 存储token
-			tgcStr = SsoAESUtil.encryptHexStr(tgc.toString(), SsoAESUtil.AES_SEED);
-			SsoUtil.saveTGC(req, res, ssoProperties, tgcStr);
+			// 存储登录用户信息
+			req.getSession().setAttribute(Const.TICKET_PREFIX_TGT, tgt);
+			SsoUtil.saveLoginUser(req, loginUser.toString());
 			SsoUtil.saveLanguage(req, res, ssoProperties, Locale.CHINA.toString());
-			req.getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser);
 			
-			LOGGER.debug("dev debug login user: {}, token: {}", loginUser.toString(), tgcStr);
+			LOGGER.debug("dev debug login user: {}, TGC: {}", loginUser.toString(), tgc);
 		}
 		chain.doFilter(request, response);
 	}

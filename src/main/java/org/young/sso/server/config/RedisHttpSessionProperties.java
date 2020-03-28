@@ -22,7 +22,7 @@ public class RedisHttpSessionProperties {
 	@Value("${spring.session.redis.namespace}")
 	private String namespace = "spring:session";
 	
-	private String idkey = "_sso_";
+	private String cookieName = "TGC";
 
 	@Autowired
 	private StringRedisTemplate redis;
@@ -91,12 +91,12 @@ public class RedisHttpSessionProperties {
 		this.namespace = namespace;
 	}
 
-	public String getIdkey() {
-		return idkey;
+	public String getCookieName() {
+		return cookieName;
 	}
 
-	public void setIdkey(String idkey) {
-		this.idkey = idkey;
+	public void setCookieName(String cookieName) {
+		this.cookieName = cookieName;
 	}
 
 }

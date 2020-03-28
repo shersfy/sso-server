@@ -43,7 +43,7 @@ public interface UserInfoService extends BaseService<UserInfo, Long> {
 	 */
 	void checkExist(SsoResult res, Long userId, String username, String phone, String email);
 
-	String generateTGC(LoginUser loginUser, String session);
+	String generateTGT(LoginUser loginUser, String tgc);
 
 	String generateRequestKey(String remoteAddr);
 

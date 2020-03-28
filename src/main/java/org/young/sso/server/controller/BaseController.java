@@ -20,10 +20,10 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.young.sso.sdk.autoconfig.ConstSso;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
+import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.config.AppProperties;
 import org.young.sso.server.config.I18nCodes;
@@ -74,14 +74,23 @@ public class BaseController implements I18nCodes{
 	}
 
 	public String getBasePath() {
-		return getRequest().getAttribute(ConstSso.BASE_PATH).toString();
+		return getRequest().getAttribute(Const.BASE_PATH).toString();
 	}
 	
 	protected void saveLoginUser(LoginUser loginUser) {
-		if (loginUser==null) {
-			return;
+		saveLoginUser(loginUser, null, null);
+	}
+	
+	protected void saveLoginUser(LoginUser loginUser, String tgt, String lang) {
+		if (loginUser!=null) {
+			SsoUtil.saveLoginUser(getRequest(), loginUser.toString());
 		}
-		getRequest().getSession().setAttribute(Const.SESSION_LOGIN_USER, loginUser.toString());
+		if (StringUtils.isNotBlank(tgt)) {
+			getRequest().getSession().setAttribute(Const.TICKET_PREFIX_TGT, tgt);
+		}
+		if (StringUtils.isNotBlank(lang)) {
+			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, lang);
+		}
 	}
 
 	public LoginUser getLoginUser() {
@@ -89,8 +98,8 @@ public class BaseController implements I18nCodes{
 		return user==null?null:JSON.parseObject(user.toString(), LoginUser.class);
 	}
 	
-	public String getTGC() {
-		Object tgc = getRequest().getSession().getAttribute(ConstSso.LOGIN_TICKET_KEY);
+	public String getTGT() {
+		Object tgc = getRequest().getSession().getAttribute(Const.TICKET_PREFIX_TGT);
 		return tgc==null?null:tgc.toString();
 	}
 

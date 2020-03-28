@@ -7,7 +7,7 @@ server:
 # spring
 spring:
   session:
-    idkey: _edp_
+    cookie-name: TGC
     store-type: redis
     redis:
       namespace: ${spring.application.name}:session

@@ -30,10 +30,10 @@ import org.young.sso.server.controller.form.PasswordEditForm;
 import org.young.sso.server.controller.form.PasswordForgetForm;
 import org.young.sso.server.controller.form.UserInfoEditForm;
 import org.young.sso.server.controller.form.ValidateForm;
-import org.young.sso.server.logs.LogManager;
-import org.young.sso.server.logs.LoginLog;
 import org.young.sso.server.model.UserInfo;
 import org.young.sso.server.service.UserInfoService;
+import org.young.sso.server.service.logs.LogManager;
+import org.young.sso.server.service.logs.LoginLog;
 
 import com.alibaba.fastjson.JSON;
 
@@ -92,18 +92,16 @@ public class UserInfoController extends BaseController {
 			// 记录登录日志
 			LoginLog log = new LoginLog(userId, username, remoteAddr, remoteHost, loginLang, loginUrl);
 			logManager.sendLog(log);
-			
 			loginUser.setLoginId(log.getLoginId());
-			// 存储TGC
-			String tgc = userInfoService.generateTGC(loginUser, getRequest().getSession().getId());
-			SsoUtil.saveTGC(getRequest(), getResponse(), ssoProperties, tgc);
-			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, log.getLoginLang());
-
+			
+			// 生成TGT
+			getRequest().getSession().invalidate();
+			String tgc = getRequest().getSession().getId();
+			String tgt = userInfoService.generateTGT(loginUser, tgc);
+			
 			// 存储登录用户信息
-			saveLoginUser(loginUser);
-
-			LOGGER.info("sign in successful. session={}, TGC={}", 
-					getRequest().getSession().getId(), SsoUtil.hiddenToken(tgc));
+			saveLoginUser(loginUser, tgt, log.getLoginLang());
+			LOGGER.info("sign in successful. session={}, TGT={}", tgc, SsoUtil.hiddenTicket(tgt));
 
 		} catch (Exception e) {
 			LOGGER.error("id="+id, e);
@@ -129,8 +127,7 @@ public class UserInfoController extends BaseController {
 	public SsoResult loginKey() {
 
 		SsoResult res = new SsoResult();
-		String prefix = userInfoService.getCacheKey(Const.LOGIN_CACHE_KEY_PREFIX);
-		prefix = String.format("%s_%s", prefix, getRemoteAddr());
+		String prefix = String.format("%s_%s", Const.LOGIN_CACHE_KEY_PREFIX, getRemoteAddr());
 		// 限制次数
 		if (userInfoService.countRequestKey(prefix) >= properties.getRequestKeyMaxLimit()) {
 			// 操作过于频繁，请稍后重试
