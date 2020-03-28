@@ -18,10 +18,6 @@ public interface Const extends ConstSso{
 	/** 登录日志ID缓存key前缀 **/
 	String LOGIN_ID_KEY_PREFIX   = "login_id_increment";
 	
-	
-	/** EDP 内置数据ID**/
-	long EDP_AUTH_ID = 1;
-	
 	/** 随机数长度 **/
 	int RANDOM_LEN = 6;
 
