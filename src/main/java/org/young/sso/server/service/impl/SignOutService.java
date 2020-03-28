@@ -44,6 +44,12 @@ public class SignOutService {
 			LOGGER.info("sign out webapp successful '{}' by session '{}'", webappSignoutFull, webappSession);
 			return;
 		}
+		
+		// 错误
+		if (res.getCode()<=HttpStatus.SC_BAD_REQUEST) {
+			LOGGER.error("sign out webapp error: {}", res.toString());
+			return;
+		}
 
 		int seconds = retry >3? 3:retry;
 		seconds = 4-seconds;
