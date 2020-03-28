@@ -1,5 +1,6 @@
 package org.young.sso.server.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class SignOutService {
 		
 		TicketGrantingTicket tgt = kdc.findTGT(sessionId);
 		if (tgt == null) {
-			return null;
+			return new ArrayList<>();
 		}
 		
 		return tgt.getWebapps();
