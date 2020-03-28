@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,31 @@ public class SignOutService {
 	private KeyDistributionCenter kdc;
 	
 	/**
+	 * 退出登录注册到sso server TGT的客户端应用
+	 * @param sessionId sso server session id
+	 * @param retry
+	 */
+	@Async
+	public void signOut(String sessionId, int retry) {
+		if (StringUtils.isBlank(sessionId)) {
+			return;
+		}
+		// 销毁登录应用session
+		List<LoginWebapp> loginWebapps = getLoginWebapps(sessionId);
+		loginWebapps.forEach(app->{
+			String logout = app.getApplogout();
+			if (!StringUtils.startsWithIgnoreCase(logout, "http")) {
+				logout = HttpUtil.concatUrl(app.getAppserver(), logout);
+			}
+			signOut(logout, app.getSession(), retry);
+		});
+	}
+	
+	/**
 	 * 退出已登录应用
 	 * @param webappSignoutFull
 	 * @param webappSession
 	 */
-	@Async
 	public void signOut(String webappSignoutFull, String webappSession, int retry) {
 		if (retry<=0) {
 			return;

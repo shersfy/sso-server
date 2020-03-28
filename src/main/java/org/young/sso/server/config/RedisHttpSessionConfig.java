@@ -1,10 +1,7 @@
 package org.young.sso.server.config;
 
-import java.util.List;
-
 import javax.servlet.http.HttpSessionEvent;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +19,6 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.young.sso.sdk.autoconfig.SsoAutoConfiguration;
 import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.listener.SessionSharedListener;
-import org.young.sso.sdk.resource.LoginWebapp;
-import org.young.sso.sdk.utils.HttpUtil;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.service.impl.SignOutService;
@@ -71,18 +66,7 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 
 	@Override
 	public void removeWebapps(String sessionId) {
-		if (StringUtils.isBlank(sessionId)) {
-			return;
-		}
-		// 销毁登录应用session
-		List<LoginWebapp> loginWebapps = signOutService.getLoginWebapps(sessionId);
-		loginWebapps.forEach(app->{
-			String logout = app.getApplogout();
-			if (!StringUtils.startsWithIgnoreCase(logout, "http")) {
-				logout = HttpUtil.concatUrl(app.getAppserver(), logout);
-			}
-			signOutService.signOut(logout, app.getSession(), ssoProperties.getRequestRemoteRetry());
-		});
+		signOutService.signOut(sessionId, ssoProperties.getRequestRemoteRetry());
 	}
 	
 	@Override
