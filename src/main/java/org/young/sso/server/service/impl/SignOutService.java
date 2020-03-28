@@ -1,6 +1,5 @@
 package org.young.sso.server.service.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +14,8 @@ import org.young.sso.sdk.resource.LoginWebapp;
 import org.young.sso.sdk.utils.HttpUtil;
 import org.young.sso.sdk.utils.HttpUtil.HttpResult;
 import org.young.sso.server.beans.Const;
-import org.young.sso.server.config.RedisHttpSessionProperties;
 import org.young.sso.server.service.kdc.KeyDistributionCenter;
 import org.young.sso.server.service.kdc.TicketGrantingTicket;
-
-import com.alibaba.fastjson.JSON;
 
 @Component
 public class SignOutService {
@@ -29,9 +25,6 @@ public class SignOutService {
 	@Autowired
 	private KeyDistributionCenter kdc;
 	
-	@Autowired
-	private RedisHttpSessionProperties sessionProperties;
-
 	/**
 	 * 退出已登录应用
 	 * @param webappSignoutFull
@@ -65,43 +58,42 @@ public class SignOutService {
 	}
 
 	/**
-	 * 从SSO服务器session获取已登录应用的注册信息
-	 * @param sessionId
+	 * 从TGT获取已登录应用的注册信息
+	 * @param sessionId sso server session id
 	 * @return
 	 */
 	public List<LoginWebapp> getLoginWebapps(String sessionId){
-		Map<String, Object> attrs = sessionProperties.getSessionAttrs(sessionId);
-
-		String webappKey = Const.SESSION_LOGIN_WEBAPPS;
-		List<LoginWebapp> loginWebapps = null;
-		Object obj = sessionProperties.getSessionAttr(attrs, webappKey);
-		if (obj!=null) {
-			loginWebapps =  JSON.parseArray(obj.toString(), LoginWebapp.class);
-		} else {
-			loginWebapps = new ArrayList<>();
+		
+		TicketGrantingTicket tgt = kdc.findTGT(sessionId);
+		if (tgt == null) {
+			return null;
 		}
 		
-		LOGGER.debug("== getLoginWebapps sessionId={}, text={}", sessionId, loginWebapps);
-		return loginWebapps;
+		return tgt.getWebapps();
 	}
 
 	/**
-	 * 已登录应用注册信息存储到SSO服务器session
-	 * @param sessionId
-	 * @param loginWebapps
+	 *  已登录应用注册信息存储到TGT
+	 * @param sessionId sso server session id
+	 * @param webapp
 	 */
-	public void setLoginWebapps(String sessionId, List<LoginWebapp> loginWebapps){
+	public void addLoginWebapp(String sessionId, LoginWebapp webapp){
 		// 设置新值
-		String key  = Const.SESSION_LOGIN_WEBAPPS;
-		String text = JSON.toJSONString(loginWebapps);
+		TicketGrantingTicket tgt = kdc.findTGT(sessionId);
+		if (tgt == null) {
+			return;
+		}
 		
-		LOGGER.debug("== setSessionAttr sessionId={}, key={}, text={}", sessionId, key, text);
-		sessionProperties.setSessionAttr(sessionId, key, text);
+		tgt.getWebapps().add(webapp);
+		kdc.updateTGT(tgt);
+		
+		LOGGER.info("webapp register successful. appsession={}, appserver={}, applogout={}", 
+				webapp.getSession(), webapp.getAppserver(), webapp.getApplogout());
 	}
 
 
 	public TicketGrantingTicket removeTGT(String session) {
-		TicketGrantingTicket obj = kdc.getTGT(session);
+		TicketGrantingTicket obj = kdc.findTGT(session);
 		if (obj!=null && kdc.removeTGT(session)) {
 			LOGGER.info("removed TGT '{}'", kdc.getTGTKey(session));
 		}

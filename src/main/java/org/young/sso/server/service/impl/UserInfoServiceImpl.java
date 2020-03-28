@@ -180,7 +180,7 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 		}
 		
 		// 验证ST有效性
-		TicketGrantingTicket tgt = kdc.getTGTByST(form.getSt());
+		TicketGrantingTicket tgt = kdc.findTGTByST(form.getSt());
 		if (tgt==null) {
 			LOGGER.error("validate error: '{}' st already expired", form.getSt());
 			res.setCode(I18nCodes.getCode(MSGE000003));
@@ -197,13 +197,12 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			return res;
 		}
 		
+		LOGGER.info("webapp validate successful. user={}", tgt.getUser().getUsername());
+		
 		// 注册客户端应用
 		LoginWebapp webapp = new LoginWebapp(form.getWebappServer(), form.getWebappLogout());
-		webapp.getSessions().add(form.getWebappSession());
-		
-		List<LoginWebapp> webapps = signOutService.getLoginWebapps(tgt.getId());
-		webapps.add(webapp);
-		signOutService.setLoginWebapps(tgt.getId(), webapps);
+		webapp.setSession(form.getWebappSession());
+		signOutService.addLoginWebapp(tgt.getId(), webapp);
 		
 		// 返回登录用户
 		res.setModel(tgt.getUser());

@@ -7,12 +7,11 @@ server:
 # spring
 spring:
   session:
-    cookie-name: TGC
     store-type: redis
     redis:
       namespace: ${spring.application.name}:session
     timeout: 
-      seconds: 1800
+      seconds: ${sso.tgc-max-age-seconds}
   redis:
     url: redis://10.32.15.78:6379
   datasource:
@@ -67,11 +66,15 @@ spring:
             class: javax.net.ssl.SSLSocketFactory
 sso:
   enabled: true
+  cookie-name: TGC
   webapp-server: '#'
   async-supported: false
   auto-remove-webapp-from-server: false
   st-max-age-seconds: 10
-  tgc-max-age-seconds: 60
+  # 2h=2*60*60=7200
+  tgc-max-age-seconds: 1800
+  # 8h=8*60*60=28800
+  tgt-max-age-seconds: 7200
   ignore-urls: /login/*, /sign/in, /resource/webapp/*, /decrypt, /actuator/*,/auth/menu/*
   ignore-resources: .js, .css, .jpg, .png, .ico, .html, .js.map, .woff, .ttf
   server:

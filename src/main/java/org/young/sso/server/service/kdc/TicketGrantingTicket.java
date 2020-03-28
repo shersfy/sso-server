@@ -1,6 +1,10 @@
 package org.young.sso.server.service.kdc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.young.sso.sdk.resource.LoginUser;
+import org.young.sso.sdk.resource.LoginWebapp;
 import org.young.sso.server.beans.Const;
 
 /**
@@ -14,12 +18,15 @@ public class TicketGrantingTicket extends Ticket {
 	
 	private LoginUser user;
 	
+	private List<LoginWebapp> webapps;
+	
 	public TicketGrantingTicket() {
 		super();
+		this.webapps = new ArrayList<>();
 	}
 
 	public TicketGrantingTicket(LoginUser user, String tgc) {
-		super();
+		this();
 		this.user = user;
 		setId(tgc);
 	}
@@ -35,6 +42,14 @@ public class TicketGrantingTicket extends Ticket {
 
 	public void setUser(LoginUser user) {
 		this.user = user;
+	}
+
+	public List<LoginWebapp> getWebapps() {
+		return webapps;
+	}
+
+	public void setWebapps(List<LoginWebapp> webapps) {
+		this.webapps = webapps;
 	}
 	
 }

@@ -1,32 +1,20 @@
 package org.young.sso.server.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 @RefreshScope
-@ConfigurationProperties(RedisHttpSessionProperties.PREFIX)
+@ConfigurationProperties
 public class RedisHttpSessionProperties {
 	
-	public static final String PREFIX = "spring.session";
-
 	@Value("${spring.session.timeout.seconds}")
 	private int timeoutSeconds = 300;
 
 	@Value("${spring.session.redis.namespace}")
 	private String namespace = "spring:session";
 	
-	private String cookieName = "TGC";
-
-	@Autowired
-	private StringRedisTemplate redis;
-
 	public String getSessionKey(String sessionId) {
 		String key = "%s:sessions:%s";
 		key = String.format(key, namespace, sessionId);
@@ -46,35 +34,6 @@ public class RedisHttpSessionProperties {
 		return name;
 	}
 
-	public Map<String, Object> getSessionAttrs(String sessionId){
-
-		Map<String, Object> attrs = new HashMap<>();
-		if (StringUtils.isBlank(sessionId)) {
-			return attrs;
-		}
-
-		String sessionKey = getSessionKey(sessionId);
-		redis.opsForHash().entries(sessionKey).forEach((k, v)->{
-			attrs.put(k.toString(), v);
-		});
-
-		return attrs;
-	}
-
-
-	public Object getSessionAttr(Map<String, Object> attrs, String name) {
-		if (attrs==null) {
-			return null;
-		}
-		return attrs.get(getSessionAttrKey(name));
-	}
-
-	public void setSessionAttr(String sessionId, String name , Object value) {
-		String sessionKey = getSessionKey(sessionId);
-		String attrKey    = getSessionAttrKey(name);
-		redis.opsForHash().put(sessionKey, attrKey, value);
-	}
-
 	public int getTimeoutSeconds() {
 		return timeoutSeconds;
 	}
@@ -89,14 +48,6 @@ public class RedisHttpSessionProperties {
 
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
-	}
-
-	public String getCookieName() {
-		return cookieName;
-	}
-
-	public void setCookieName(String cookieName) {
-		this.cookieName = cookieName;
 	}
 
 }

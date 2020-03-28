@@ -65,7 +65,7 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 	public CookieSerializer cookieSerializer() {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookiePath("/");
-		serializer.setCookieName(sessionProperties.getCookieName());
+		serializer.setCookieName(ssoProperties.getCookieName());
 		return serializer;
 	}
 
@@ -77,13 +77,11 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 		// 销毁登录应用session
 		List<LoginWebapp> loginWebapps = signOutService.getLoginWebapps(sessionId);
 		loginWebapps.forEach(app->{
-			app.getSessions().forEach(session->{
-				String logout = app.getApplogout();
-				if (!StringUtils.startsWithIgnoreCase(logout, "http")) {
-					logout = HttpUtil.concatUrl(app.getAppserver(), logout);
-				}
-				signOutService.signOut(logout, session, ssoProperties.getRequestRemoteRetry());
-			});
+			String logout = app.getApplogout();
+			if (!StringUtils.startsWithIgnoreCase(logout, "http")) {
+				logout = HttpUtil.concatUrl(app.getAppserver(), logout);
+			}
+			signOutService.signOut(logout, app.getSession(), ssoProperties.getRequestRemoteRetry());
 		});
 	}
 	
