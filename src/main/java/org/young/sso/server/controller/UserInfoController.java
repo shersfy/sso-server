@@ -116,7 +116,7 @@ public class UserInfoController extends BaseController {
 	 * 退出过滤器已处理
 	 * @return
 	 */
-	@PostMapping("/sign/out")
+	@GetMapping("/sign/out")
 	public SsoResult signOut() {
 		SsoResult res = new SsoResult();
 		SsoUtil.invalidateSession(getRequest().getSession());
