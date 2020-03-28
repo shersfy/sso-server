@@ -1,5 +1,7 @@
 package org.young.sso.server.controller;
 
+import java.io.IOException;
+
 import javax.validation.Valid;
 
 import org.apache.commons.lang.StringUtils;
@@ -115,12 +117,12 @@ public class UserInfoController extends BaseController {
 	/**
 	 * 退出过滤器已处理
 	 * @return
+	 * @throws IOException 
 	 */
 	@GetMapping("/sign/out")
-	public SsoResult signOut() {
-		SsoResult res = new SsoResult();
+	public void signOut() throws IOException {
 		SsoUtil.invalidateSession(getRequest().getSession());
-		return res;
+		getResponse().sendRedirect("/");
 	}
 
 	@PostMapping("/login/k")
