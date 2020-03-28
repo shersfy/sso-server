@@ -75,7 +75,7 @@ sso:
   tgc-max-age-seconds: 1800
   # 8h=8*60*60=28800
   tgt-max-age-seconds: 7200
-  ignore-urls: /login/*, /sign/in, /resource/webapp/*, /decrypt, /actuator/*,/auth/menu/*
+  ignore-urls: /login/*, /sign/in
   ignore-resources: .js, .css, .jpg, .png, .ico, .html, .js.map, .woff, .ttf
   server:
     swagger:
