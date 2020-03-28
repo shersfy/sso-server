@@ -71,6 +71,9 @@ public interface I18nCodes {
 	/** 参数校验: 密码不能全部是'*' **/
 	String MSGC000022 = "sso.server.MSGC000022";
 	
+	/** 参数校验: 至少输入两项,用户名与联系方式不能相同 **/
+	String MSGC000023 = "sso.server.MSGC000023";
+	
 	/** 登录错误: 用户'%s'不存在 **/
 	String MSGE000001 = "sso.server.MSGE000001";
 	

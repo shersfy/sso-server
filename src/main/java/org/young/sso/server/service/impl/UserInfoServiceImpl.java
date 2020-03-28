@@ -347,27 +347,39 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			res.setModel(new I18nModel(MSGC000003, "phoneOrEmail"));
 			return res;
 		}
-
+		
+		if (username.equals(phoneOrEmail)) {
+			res.setCode(FAIL);
+			res.setModel(new I18nModel(MSGC000023));
+			return res;
+		}
+		
 		if (!phoneOrEmail.contains("@") && !phoneOrEmail.matches("[0-9]{11}")) {
 			res.setCode(FAIL);
 			res.setModel(new I18nModel(MSGC000007, "phone", phoneOrEmail));
 			return res;
 		}
-
+		
 		UserInfo where = new UserInfo();
-		where.setUsername(username);
+		// 邮箱登录
+		if (form.getUsername().contains("@")) {
+			where.setEmail(form.getUsername());
+		}
+		// 手机号登录
+		else if (form.getUsername().matches("[0-9]+")) {
+			where.setPhone(form.getUsername());
+		}
+		// 用户名登录
+		else {
+			where.setUsername(form.getUsername());
+		}
 
-		List<UserInfo> list = findList(where);
-		boolean invalid = list.isEmpty();
-		invalid = invalid || list.get(0).getStatus().intValue()==DEL;
-
-		if (invalid) {
+		UserInfo user = mapper.findByUser(where);
+		if (user==null) {
 			res.setCode(FAIL);
 			res.setModel(new I18nModel(MSGE000001, username));
 			return res;
 		}
-
-		UserInfo user = list.get(0);
 
 		if (!user.getPhone().equals(phoneOrEmail) 
 				&& !user.getEmail().equals(phoneOrEmail)) {
@@ -377,16 +389,7 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 		}
 
 		user.setPassword(Const.HIDDEN_CODE);
-		try {
-			LoginUser loginUser = new LoginUser();
-			BeanUtils.copyProperties(loginUser, user);
-			loginUser.setUserId(user.getId());
-			res.setModel(loginUser);
-		} catch (Exception e) {
-			res.setCode(FAIL);
-			res.setModel(new I18nModel(MSGE000008));
-			LOGGER.error("", e);
-		}
+		res.setModel(poToLoginUser(user));
 
 		return res;
 	}
