@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.young.sso.sdk.autoconfig.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
@@ -47,9 +46,6 @@ public class UserInfoController extends BaseController {
 	@Lazy
 	@Autowired
 	private RsaKeyPair keyPair;
-
-	@Autowired
-	private SsoProperties ssoProperties;
 
 	@Autowired
 	private UserInfoService userInfoService;
@@ -152,7 +148,7 @@ public class UserInfoController extends BaseController {
 
 		RsaJsEncryptor encryptor = keyPair.getRsaJsEncryptor();
 		try {
-			if (ssoProperties.isEnabledRsa()) {
+			if (ssoconf.isEnabledRsa()) {
 				data = encryptor.decrypt(data);
 			}
 		} catch (Exception e) {

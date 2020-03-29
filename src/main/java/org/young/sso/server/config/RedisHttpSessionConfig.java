@@ -65,8 +65,8 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 		if (StringUtils.isNotBlank(ssoconf.getCookie().getDomain())) {
 			serializer.setDomainName(ssoconf.getCookie().getDomain());
 		}
-		serializer.setUseHttpOnlyCookie(ssoconf.getCookie().isHttpOnly());
-		serializer.setUseSecureCookie(ssoconf.getCookie().isSecure());
+//		serializer.setUseHttpOnlyCookie(ssoconf.getCookie().isHttpOnly());
+//		serializer.setUseSecureCookie(ssoconf.getCookie().isSecure());
 		return serializer;
 	}
 

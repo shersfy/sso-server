@@ -28,7 +28,7 @@ public class PageController extends BaseController {
 		ModelAndView mv = new ModelAndView("redirect:/goto");
 		if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
 			// 默认应用首页为空，重定向到sso server首页
-			webapp = ssoProperties.getWebappServer();
+			webapp = ssoconf.getWebappServer();
 			if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
 				mv.setViewName("index");
 				return mv;
@@ -56,7 +56,7 @@ public class PageController extends BaseController {
 		ModelAndView mv = new ModelAndView();
 		if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
 			// 默认应用首页为空，重定向到sso server首页
-			webapp = ssoProperties.getWebappServer();
+			webapp = ssoconf.getWebappServer();
 			if (StringUtils.isBlank(webapp) || "#".equals(webapp)) {
 				mv.setViewName("redirect:/");
 				return mv;

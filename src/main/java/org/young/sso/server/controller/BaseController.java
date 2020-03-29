@@ -43,7 +43,7 @@ public class BaseController implements I18nCodes{
 	protected AppProperties properties;
 	
 	@Autowired
-	protected SsoProperties ssoProperties;
+	protected SsoProperties ssoconf;
 	
 	@Autowired
 	private I18nMessages i18n;
@@ -89,7 +89,7 @@ public class BaseController implements I18nCodes{
 			getRequest().getSession().setAttribute(Const.TICKET_PREFIX_TGT, tgt);
 		}
 		if (StringUtils.isNotBlank(lang)) {
-			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoProperties, lang);
+			SsoUtil.saveLanguage(getRequest(), getResponse(), ssoconf, lang);
 		}
 	}
 
