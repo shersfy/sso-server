@@ -15,8 +15,6 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
