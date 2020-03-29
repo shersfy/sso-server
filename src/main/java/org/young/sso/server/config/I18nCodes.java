@@ -107,7 +107,7 @@ public interface I18nCodes {
 	/** 验证错误: 数据解密错误 **/
 	String MSGE000012 = "sso.server.MSGE000012";
 	
-	/** 验证错误: 用户未登录或已过期 **/
+	/** 验证错误: 用户未登录或已过期, 请重新登录 **/
 	String MSGE000013 = "sso.server.MSGE000013";
 	
 	/** 验证错误: 客户端应用加密异常 **/

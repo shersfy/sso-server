@@ -197,6 +197,15 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 			return res;
 		}
 		
+		// 验证TGT有效性
+		if (kdc.findTGT(tgt.getId())==null) {
+			LOGGER.error("validate error: sso server cached TGT-{} not exists or already expired", 
+					tgt.getId());
+			res.setCode(I18nCodes.getCode(MSGE000013));
+			res.setModel(new I18nModel(MSGE000013));
+			return res;
+		}
+		
 		LOGGER.info("webapp validate successful. user={}", tgt.getUser().getUsername());
 		
 		// 注册客户端应用
