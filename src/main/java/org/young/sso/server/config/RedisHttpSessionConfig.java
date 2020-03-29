@@ -2,6 +2,7 @@ package org.young.sso.server.config;
 
 import javax.servlet.http.HttpSessionEvent;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 	protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	private SsoProperties ssoProperties;
+	private SsoProperties ssoconf;
 	
 	@Lazy
 	@Autowired
@@ -60,18 +61,23 @@ public class RedisHttpSessionConfig implements SessionSharedListener{
 	public CookieSerializer cookieSerializer() {
 		DefaultCookieSerializer serializer = new DefaultCookieSerializer();
 		serializer.setCookiePath("/");
-		serializer.setCookieName(ssoProperties.getCookieName());
+		serializer.setCookieName(ssoconf.getCookie().getSidname());
+		if (StringUtils.isNotBlank(ssoconf.getCookie().getDomain())) {
+			serializer.setDomainName(ssoconf.getCookie().getDomain());
+		}
+		serializer.setUseHttpOnlyCookie(ssoconf.getCookie().isHttpOnly());
+		serializer.setUseSecureCookie(ssoconf.getCookie().isSecure());
 		return serializer;
 	}
 
 	@Override
 	public void removeWebapps(String sessionId) {
-		signOutService.signOut(sessionId, ssoProperties.getRequestRemoteRetry());
+		signOutService.signOut(sessionId, ssoconf.getRequestRemoteRetry());
 	}
 	
 	@Override
 	public void invalidateSession(String sessionId) {
-		if (ssoProperties.isAutoRemoveWebappFromServer()) {
+		if (ssoconf.isAutoRemoveWebappFromServer()) {
 			removeWebapps(sessionId);
 		}
 		// 删除缓存
