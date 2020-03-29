@@ -29,4 +29,4 @@ CREATE TABLE `user_info` (
 -- ----------------------------
 -- Records of user_info
 -- ----------------------------
-INSERT INTO `user_info` VALUES ('1', 'asadmin', '埃斯阿达米', 'e10adc3949ba59abbe56e057f20f883e', '13512345678', 'shersfy@163.com', '内置用户', '-1', '2020-03-27 11:49:04', '2020-03-01 00:00:00');
+INSERT INTO `user_info` VALUES ('1', 'asadmin', '埃斯•阿达米', 'e10adc3949ba59abbe56e057f20f883e', '13512345678', 'shersfy@163.com', '内置用户', '-1', '2020-03-27 11:49:04', '2020-03-01 00:00:00');
