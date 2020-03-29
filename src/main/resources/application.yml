@@ -67,8 +67,10 @@ spring:
 sso:
   enabled: true
   webapp-server: '#'
-  async-supported: false
-  auto-remove-webapp-from-server: false
+  cookie:
+    sidname: TGC
+    http-only: true
+    secure: false
   st-max-age-seconds: 10
   # 2h=2*60*60=7200
   tgc-max-age-seconds: 1800
