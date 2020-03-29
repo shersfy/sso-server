@@ -1,5 +1,6 @@
 package org.young.sso.server.controller;
 
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,7 +15,11 @@ import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.entity.ContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
@@ -32,6 +37,8 @@ import org.young.sso.server.config.i18n.I18nMessages;
 import com.alibaba.fastjson.JSON;
 
 public class BaseController implements I18nCodes{
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	protected static final int SUCESS = ResultCode.SUCESS;
 	protected static final int FAIL	  = ResultCode.FAIL;

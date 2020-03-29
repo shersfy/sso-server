@@ -65,7 +65,7 @@ spring:
             port: 465
             class: javax.net.ssl.SSLSocketFactory
 sso:
-  enabled: false
+  enabled: true
   cookie-name: TGC
   webapp-server: '#'
   async-supported: false
