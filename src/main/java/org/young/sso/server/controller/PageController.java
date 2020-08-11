@@ -64,7 +64,7 @@ public class PageController extends BaseController {
 		}
 		
 		try {
-			webapp = URLDecoder.decode(webapp, "UTF-8");
+			webapp = URLDecoder.decode(webapp.trim(), "UTF-8");
 			String apphost = new URL(webapp).getHost();
 			
 			String tgc = getRequest().getSession().getId();
@@ -73,9 +73,12 @@ public class PageController extends BaseController {
 			String st = kdc.generateST(tgt, apphost);
 			rk = String.format("%s-%s", Const.TICKET_PREFIX_RK, SsoAESUtil.encryptHexStr(rk, apphost));
 			
+			// 只取#前面部分作为重定向路径
+			String[] arr = webapp.split("#");
+			
 			StringBuilder redirect = new StringBuilder(0);
-			redirect.append(webapp);
-			redirect.append(webapp.contains("?")? "&" :"?");
+			redirect.append(arr[0]);
+			redirect.append(arr[0].contains("?")? "&" :"?");
 			redirect.append(Const.LOGIN_TICKET_KEY).append("=").append(st);
 			redirect.append("&").append(Const.LOGIN_REQUEST_KEY).append("=").append(rk);
 			mv.setViewName("redirect:"+redirect.toString());
@@ -93,7 +96,7 @@ public class PageController extends BaseController {
 		ModelAndView mv = new ModelAndView("redirect:/login/");
 		mv.addObject("webapp", webapp);
 		return mv;
-	};
+	}
 	
 	@GetMapping("/login/")
 	public ModelAndView login2(String webapp) {
