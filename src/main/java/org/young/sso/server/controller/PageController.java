@@ -105,7 +105,7 @@ public class PageController extends BaseController {
 			mv.addObject("webapp", webapp);
 		}
 		// 已登录
-		if (getTGT()!=null) {
+		if (isLogined()) {
 			if (StringUtils.isNotBlank(webapp)) {
 				mv.setViewName("redirect:/goto");
 			} else {

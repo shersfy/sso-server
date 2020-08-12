@@ -71,12 +71,16 @@ sso:
     sidname: TGC
     http-only: true
     secure: false
+  weixin:
+    corpid: 'ww7e3a9f0972350122'
+    provider-secret: 'xGeBSZ1gcUT1tsWktei9_P2ROgy2WGZGu4C2aRqWrdaIN4lqLx3G_xa9SMccU_YY'
+    login-uri: https://open.work.weixin.qq.com/wwopen/sso/3rd_qrConnect?appid={0}&redirect_uri={1}
   st-max-age-seconds: 10
   # 2h=2*60*60=7200
   tgc-max-age-seconds: 1800
   # 8h=8*60*60=28800
   tgt-max-age-seconds: 7200
-  ignore-urls: /login/*, /sign/in
+  ignore-urls: /login/*, /sign/in, /error
   ignore-resources: .js, .css, .jpg, .png, .ico, .html, .js.map, .woff, .ttf
   server:
     swagger:

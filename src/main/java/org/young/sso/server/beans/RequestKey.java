@@ -18,6 +18,11 @@ public class RequestKey extends BaseBean {
 	 */
 	private String p;
 	
+	/**
+	 * 微信登录地址
+	 */
+	private String wxlogin;
+	
 	public RequestKey(String k, String p) {
 		super();
 		this.k = k;
@@ -38,6 +43,14 @@ public class RequestKey extends BaseBean {
 	
 	public void setP(String p) {
 		this.p = p;
+	}
+
+	public String getWxlogin() {
+		return wxlogin;
+	}
+
+	public void setWxlogin(String wxlogin) {
+		this.wxlogin = wxlogin;
 	} 
 
 	

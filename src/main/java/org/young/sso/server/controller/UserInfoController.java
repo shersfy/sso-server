@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.young.sso.sdk.resource.LoginType;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
@@ -89,6 +90,12 @@ public class UserInfoController extends BaseController {
 			
 			// 记录登录日志
 			LoginLog log = new LoginLog(userId, username, remoteAddr, remoteHost, loginLang, loginUrl);
+			if (idInfo.getType()==LoginType.qrcode) {
+				log.setLoginType("扫码登录");
+			} else {
+				log.setLoginType("用户名/密码");
+			}
+			
 			logManager.sendLog(log);
 			loginUser.setLoginId(log.getLoginId());
 			
@@ -135,7 +142,17 @@ public class UserInfoController extends BaseController {
 		}
 
 		String key = userInfoService.generateRequestKey(getRemoteAddr());
-		res.setModel(new RequestKey(key, keyPair.getRsaJsEncryptor().getPemPubKey()));
+		RequestKey rk = new RequestKey(key, keyPair.getRsaJsEncryptor().getPemPubKey());
+		
+		String wxcallback = SsoUtil.getBasePath(getRequest());
+		wxcallback = String.format("%s/login/wx_%s", wxcallback, key);
+		
+		String webapp = getRequest().getParameter("webapp");
+		wxcallback = StringUtils.isBlank(webapp) ?wxcallback: wxcallback+"?webapp="+webapp;
+		
+		rk.setWxlogin(ssoconf.getWeixin().getLoginUri(wxcallback));
+		
+		res.setModel(rk);
 		return res;
 	}
 	

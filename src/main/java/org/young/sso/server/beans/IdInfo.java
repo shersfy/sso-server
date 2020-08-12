@@ -3,6 +3,7 @@ package org.young.sso.server.beans;
 import java.util.Locale;
 
 import org.young.sso.sdk.resource.BaseBean;
+import org.young.sso.sdk.resource.LoginType;
 
 public class IdInfo extends BaseBean{
 	
@@ -18,7 +19,9 @@ public class IdInfo extends BaseBean{
 	private String password;
 	
 	private String lang = Locale.CHINA.toString();
-
+	
+	private LoginType type = LoginType.pwd;
+	
 	public String getUsername() {
 		return username;
 	}
@@ -49,6 +52,14 @@ public class IdInfo extends BaseBean{
 
 	public void setLang(String lang) {
 		this.lang = lang;
+	}
+
+	public LoginType getType() {
+		return type;
+	}
+
+	public void setType(LoginType type) {
+		this.type = type;
 	}
 
 }

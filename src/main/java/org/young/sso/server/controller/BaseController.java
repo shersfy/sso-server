@@ -98,6 +98,10 @@ public class BaseController implements I18nCodes{
 		return user==null?null:JSON.parseObject(user.toString(), LoginUser.class);
 	}
 	
+	public boolean isLogined() {
+		return getLoginUser()!=null;
+	}
+	
 	public String getTGT() {
 		Object tgc = getRequest().getSession().getAttribute(Const.TICKET_PREFIX_TGT);
 		return tgc==null?null:tgc.toString();

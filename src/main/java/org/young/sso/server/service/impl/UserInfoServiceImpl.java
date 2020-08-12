@@ -17,6 +17,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.young.sso.sdk.resource.LoginType;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.LoginWebapp;
 import org.young.sso.sdk.resource.SsoResult;
@@ -126,12 +127,15 @@ public class UserInfoServiceImpl extends BaseServiceImpl<UserInfo, Long>
 		}
 
 		// 校验密码
-		String md5 = MD5Util.encode(id.getPassword());
-		if (!md5.equals(user.getPassword())) {
-			res.setCode(FAIL);
-			res.setModel(new I18nModel(MSGE000002));
-			return res;
+		if (id.getType()==LoginType.pwd) {
+			String md5 = MD5Util.encode(id.getPassword());
+			if (!md5.equals(user.getPassword())) {
+				res.setCode(FAIL);
+				res.setModel(new I18nModel(MSGE000002));
+				return res;
+			}
 		}
+		
 		user.setPassword(Const.HIDDEN_CODE);
 		// 未初始化用户
 		if (TMP == user.getStatus()) {
