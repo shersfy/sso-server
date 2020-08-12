@@ -100,6 +100,14 @@ public class WeixinController extends BaseController {
 		}
 		
 		if (StringUtils.isNotBlank(webapp)) {
+			
+			// 截取重定向地址webapp
+			String search = "webapp=";
+			if (webapp.contains(search)) {
+				webapp = webapp.substring(webapp.indexOf(webapp)+webapp.length());
+			}
+			
+			// 追加corpid参数
 			String[] arr = webapp.split("#");
 			arr[0] = arr[0].contains("?") ?(arr[0]+"&corpid="+corpid):(arr[0]+"?corpid="+corpid);
 			webapp = StringUtils.join(arr, "#");
