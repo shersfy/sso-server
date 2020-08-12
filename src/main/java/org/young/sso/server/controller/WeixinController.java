@@ -77,9 +77,10 @@ public class WeixinController extends BaseController {
 		}
 		
 		// 校验用户登录
+		JSONObject json = (JSONObject) res.getModel();
+		String corpid   = json.getJSONObject("corp_info").getString("corpid");
+		String userid   = json.getJSONObject("user_info").getString("userid");
 		try {
-			JSONObject json = (JSONObject) res.getModel();
-			String userid   = json.getJSONObject("user_info").getString("userid");
 			String id = mockId(userid);
 			res = userInfoController.signIn(id);
 		} catch (Exception e) {
@@ -99,6 +100,10 @@ public class WeixinController extends BaseController {
 		}
 		
 		if (StringUtils.isNotBlank(webapp)) {
+			String[] arr = webapp.split("#");
+			arr[0] = arr[0].contains("?") ?(arr[0]+"&corpid="+corpid):(arr[0]+"?corpid="+corpid);
+			webapp = StringUtils.join(arr, "#");
+			
 			mv.setViewName("redirect:/goto");
 			mv.addObject("webapp", webapp);
 		}
