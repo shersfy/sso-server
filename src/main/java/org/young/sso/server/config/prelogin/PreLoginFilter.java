@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.young.sso.sdk.autoconfig.SsoProperties;
+import org.young.sso.sdk.autoprop.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
@@ -63,7 +63,7 @@ public class PreLoginFilter implements Filter {
 			
 			// 存储登录用户信息
 			req.getSession().setAttribute(Const.TICKET_PREFIX_TGT, tgt);
-			SsoUtil.saveLoginUser(req, loginUser.toString());
+			SsoUtil.saveLoginUser(req, loginUser);
 			SsoUtil.saveLanguage(req, res, ssoProperties, Locale.CHINA.toString());
 			
 			LOGGER.debug("dev debug login user: {}, TGC: {}", loginUser.toString(), tgc);

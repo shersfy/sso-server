@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.young.sso.sdk.autoconfig.SsoProperties;
+import org.young.sso.sdk.autoprop.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult;
 import org.young.sso.sdk.utils.SsoAESUtil;

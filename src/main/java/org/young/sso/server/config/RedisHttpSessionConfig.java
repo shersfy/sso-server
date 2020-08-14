@@ -18,8 +18,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.RedisHt
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.young.sso.sdk.autoconfig.SsoAutoConfiguration;
-import org.young.sso.sdk.autoconfig.SsoProperties;
-import org.young.sso.sdk.listener.SessionSharedListener;
+import org.young.sso.sdk.autoprop.SsoProperties;
+import org.young.sso.sdk.security.SessionSharedListener;
 import org.young.sso.sdk.utils.SsoUtil;
 import org.young.sso.server.beans.Const;
 import org.young.sso.server.service.impl.SignOutService;

@@ -20,7 +20,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.young.sso.sdk.autoconfig.SsoProperties;
+import org.young.sso.sdk.autoprop.SsoProperties;
 import org.young.sso.sdk.resource.LoginUser;
 import org.young.sso.sdk.resource.SsoResult.ResultCode;
 import org.young.sso.sdk.utils.SsoUtil;
@@ -28,8 +28,6 @@ import org.young.sso.server.beans.Const;
 import org.young.sso.server.config.AppProperties;
 import org.young.sso.server.config.I18nCodes;
 import org.young.sso.server.config.i18n.I18nMessages;
-
-import com.alibaba.fastjson.JSON;
 
 public class BaseController implements I18nCodes{
 	
@@ -83,7 +81,7 @@ public class BaseController implements I18nCodes{
 	
 	protected void saveLoginUser(LoginUser loginUser, String tgt, String lang) {
 		if (loginUser!=null) {
-			SsoUtil.saveLoginUser(getRequest(), loginUser.toString());
+			SsoUtil.saveLoginUser(getRequest(), loginUser);
 		}
 		if (StringUtils.isNotBlank(tgt)) {
 			getRequest().getSession().setAttribute(Const.TICKET_PREFIX_TGT, tgt);
@@ -94,8 +92,7 @@ public class BaseController implements I18nCodes{
 	}
 
 	public LoginUser getLoginUser() {
-		Object user = getRequest().getSession().getAttribute(Const.SESSION_LOGIN_USER);
-		return user==null?null:JSON.parseObject(user.toString(), LoginUser.class);
+		return SsoUtil.getLoginUser(getRequest());
 	}
 	
 	public boolean isLogined() {
